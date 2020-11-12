@@ -1,8 +1,8 @@
 module github.com/transactcampus/terraform-provider-octopusdeploy
 
 require (
-	github.com/transactcampus/go-octopusdeploy v1.6.1-0.20201112005925-f852734bc8e6
 	github.com/agext/levenshtein v1.2.3 // indirect
+	github.com/transactcampus/go-octopusdeploy v1.7.2
 	github.com/apparentlymart/go-cidr v1.1.0 // indirect
 	github.com/aws/aws-sdk-go v1.34.13 // indirect
 	github.com/fatih/color v1.10.0 // indirect
@@ -16,11 +16,13 @@ require (
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
 	github.com/hashicorp/hcl/v2 v2.7.0 // indirect
+	github.com/hashicorp/terraform v0.13.5
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.2.0
 	github.com/hashicorp/yamux v0.0.0-20200609203250-aecfd211c9ce // indirect
 	github.com/jinzhu/copier v0.0.0-20201025035756-632e723a6687 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
+	github.com/mitchellh/gox v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/zclconf/go-cty v1.7.0 // indirect
