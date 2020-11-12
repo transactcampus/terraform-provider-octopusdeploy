@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/OctopusDeploy/terraform-provider-octopusdeploy/octopusdeploy"
+	"github.com/transactcampus/terraform-provider-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 )
 

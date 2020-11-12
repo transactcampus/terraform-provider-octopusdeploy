@@ -22,6 +22,6 @@ After you create the directory, it should look something like the screenshot bel
 
 ## The Terraform Provider
 Once the directory is created, you'll need to add in the Terraform provider. The latest provider can be downloaded from the releases page found here:
-[Octopus_Terraform_Provider](https://github.com/OctopusDeploy/terraform-provider-octopusdeploy/releases)
+[Octopus_Terraform_Provider](https://github.com/transactcampus/terraform-provider-octopusdeploy/releases)
 
 You should put the provider download in the directory that you created: `.terraform/plugins/os_version_amd64`

@@ -6,7 +6,7 @@ To perform the needed task, you must install Golang. Depending on the operating 
 
 # Install the Terraform Provider
 The first command you will want to run is `go get` to pull down the executable
-1. `go get github.com/OctopusDeploy/terraform-provider-octopusdeploy`
+1. `go get github.com/transactcampus/terraform-provider-octopusdeploy`
 
 Once the executable is pulled down, it'll automatically go into the `~/go` directory on Linux/MacOS or the `go` directory on the home folder in Windows. Three folders will be shown in the `go` directory:
 

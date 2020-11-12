@@ -1,9 +1,9 @@
 # terraform-provider-octopusdeploy
-![Run integration tests against Octopus in a Docker container](https://github.com/OctopusDeploy/terraform-provider-octopusdeploy/workflows/Run%20integration%20tests%20against%20Octopus%20in%20a%20Docker%20container/badge.svg)
+![Run integration tests against Octopus in a Docker container](https://github.com/transactcampus/terraform-provider-octopusdeploy/workflows/Run%20integration%20tests%20against%20Octopus%20in%20a%20Docker%20container/badge.svg)
 
 A Terraform provider for [Octopus Deploy](https://octopus.com).
 
-It is based on the [go-octopusdeploy](https://github.com/OctopusDeploy/go-octopusdeploy) Octopus Deploy client SDK.
+It is based on the [go-octopusdeploy](https://github.com/transactcampus/go-octopusdeploy) Octopus Deploy client SDK.
 
 ## Testing
 
@@ -14,7 +14,7 @@ against it. These same tests can be run in a forked repository.
 
 As this provider is still under development, you will need to manually download it.
 
-There are compiled binaries for most platforms in [Releases](https://github.com/OctopusDeploy/terraform-provider-octopusdeploy/releases).
+There are compiled binaries for most platforms in [Releases](https://github.com/transactcampus/terraform-provider-octopusdeploy/releases).
 
 To use it, extract the binary for your platform into the same folder as your `.tf` file(s) will be located, then run `terraform init`.
 
