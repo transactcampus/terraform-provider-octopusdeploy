@@ -467,7 +467,9 @@ github.com/mitchellh/go-testing-interface v1.14.1/go.mod h1:gfgS7OtZj6MA4U1UrDRp
 github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7/go.mod h1:ZXFpozHsX6DPmq2I0TCekCxypsnAUbP2oI0UX1GXzOo=
 github.com/mitchellh/go-wordwrap v1.0.0/go.mod h1:ZXFpozHsX6DPmq2I0TCekCxypsnAUbP2oI0UX1GXzOo=
 github.com/mitchellh/go-wordwrap v1.0.1/go.mod h1:R62XHJLzvMFRBbcrT7m7WgmE1eOyTSsCt+hzestvNj0=
+github.com/mitchellh/gox v1.0.1 h1:x0jD3dcHk9a9xPSDN6YEL4xL6Qz0dvNYm8yZqui5chI=
 github.com/mitchellh/gox v1.0.1/go.mod h1:ED6BioOGXMswlXa2zxfh/xdd5QhwYliBFn9V18Ap4z4=
+github.com/mitchellh/iochan v1.0.0 h1:C+X3KsSTLFVBr/tK1eYN/vs4rJcvsiLU338UhYPJWeY=
 github.com/mitchellh/iochan v1.0.0/go.mod h1:JwYml1nuB7xOzsp52dPpHFffvOCDupsG0QubkSMEySY=
 github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
 github.com/mitchellh/mapstructure v1.3.3/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
@@ -578,9 +580,15 @@ github.com/tencentyun/cos-go-sdk-v5 v0.0.0-20190808065407-f07404cefc8c/go.mod h1
 github.com/tmc/grpc-websocket-proxy v0.0.0-20170815181823-89b8d40f7ca8/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20171017195756-830351dc03c6/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/tombuildsstuff/giovanni v0.12.0/go.mod h1:qJ5dpiYWkRsuOSXO8wHbee7+wElkLNfWVolcf59N84E=
-github.com/transactcampus/go-octopusdeploy v1.7.4/go.mod h1:1xaqmJDenap/6/XUM8qCxdnF5auaNubWjaEfLAOnY8o=
-github.com/transactcampus/go-octopusdeploy v1.7.6 h1:ZMOe6bPkgnieDpDqX6U8k7GYi6wV7TSLGermBIvsI+4=
-github.com/transactcampus/go-octopusdeploy v1.7.6/go.mod h1:1xaqmJDenap/6/XUM8qCxdnF5auaNubWjaEfLAOnY8o=
+github.com/transactcampus/go-octopusdeploy v1.6.1-0.20200929123159-3dc0734a3e8f h1:qsB2X3kLTf9NvUDx2sRHaLE16dbOYa1e5Pm3YrGvOuU=
+github.com/transactcampus/go-octopusdeploy v1.6.1-0.20200929123159-3dc0734a3e8f/go.mod h1:INF9xhL97JGBzFDRhwx0aQ7LUawdyrC/SChhtsc2AeE=
+github.com/transactcampus/go-octopusdeploy v1.6.1-0.20200930070124-c2652b6ff2c6 h1:gTT8gkrlSu85XjBJPH9BI/pranmRGDntViatx5sUTUY=
+github.com/transactcampus/go-octopusdeploy v1.6.1-0.20200930070124-c2652b6ff2c6/go.mod h1:INF9xhL97JGBzFDRhwx0aQ7LUawdyrC/SChhtsc2AeE=
+github.com/transactcampus/go-octopusdeploy v1.7.1/go.mod h1:1xaqmJDenap/6/XUM8qCxdnF5auaNubWjaEfLAOnY8o=
+github.com/transactcampus/go-octopusdeploy v1.7.2 h1:f47sWSI5jdmNYRuRVb3B6FazQIppyjgOgUCCMc2qf9g=
+github.com/transactcampus/go-octopusdeploy v1.7.2/go.mod h1:1xaqmJDenap/6/XUM8qCxdnF5auaNubWjaEfLAOnY8o=
+github.com/transactcampus/go-octopusdeploy v1.7.3 h1:CdrkIEIn7jmVWoxfcdUYLr/X0QxbrsPxDXHURb+VQ+c=
+github.com/transactcampus/go-octopusdeploy v1.7.3/go.mod h1:1xaqmJDenap/6/XUM8qCxdnF5auaNubWjaEfLAOnY8o=
 github.com/ugorji/go v0.0.0-20180813092308-00b869d2f4a5/go.mod h1:hnLbHMwcvSihnDhEfx2/BzKp2xb0Y+ErdfYcrs9tkJQ=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
 github.com/ulikunitz/xz v0.5.5/go.mod h1:2bypXElzHzzJZwzH67Y6wb67pO62Rzfn7BSiF4ABRW8=
@@ -871,6 +879,7 @@ google.golang.org/appengine v1.5.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7
 google.golang.org/appengine v1.6.1/go.mod h1:i06prIuMbXzDqacNJfV5OdTW448YApPu5ww/cMBSeb0=
 google.golang.org/appengine v1.6.5/go.mod h1:8WjMMxjGQR8xUklV/ARdw2HLXBOI7O7uCIDZVag1xfc=
 google.golang.org/appengine v1.6.6/go.mod h1:8WjMMxjGQR8xUklV/ARdw2HLXBOI7O7uCIDZVag1xfc=
+google.golang.org/appengine v1.6.7 h1:FZR1q0exgwxzPzp/aF+VccGrSfxfPpkBqjIIEq3ru6c=
 google.golang.org/appengine v1.6.7/go.mod h1:8WjMMxjGQR8xUklV/ARdw2HLXBOI7O7uCIDZVag1xfc=
 google.golang.org/genproto v0.0.0-20170818010345-ee236bd376b0/go.mod h1:JiN7NxoALGmiZfu7CAH4rXhgtRTLTxftemlI0sWmxmc=
 google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8/go.mod h1:JiN7NxoALGmiZfu7CAH4rXhgtRTLTxftemlI0sWmxmc=
