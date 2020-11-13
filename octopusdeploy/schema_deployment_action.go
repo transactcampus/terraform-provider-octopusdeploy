@@ -17,6 +17,7 @@ func getDeploymentActionSchema() *schema.Schema {
 		Description: "The type of action",
 		Required:    true,
 	}
+	addContainerSchema(element)
 	addWorkerPoolSchema(element)
 	addPackagesSchema(element, false)
 
@@ -113,6 +114,19 @@ func addWorkerPoolSchema(element *schema.Resource) {
 	}
 }
 
+func addContainerSchema(element *schema.Resource) {
+	element.Schema["container_image_id"] = &schema.Schema{
+		Type:        schema.TypeString,
+		Description: "ID of docker container image to use",
+		Optional:    true,
+	}
+	element.Schema["container_image_feed_id"] = &schema.Schema{
+		Type:        schema.TypeString,
+		Description: "ID of docker container image to use",
+		Optional:    true,
+	}
+}
+
 func buildDeploymentActionResource(tfAction map[string]interface{}) octopusdeploy.DeploymentAction {
 	action := octopusdeploy.DeploymentAction{
 		Channels:             getSliceFromTerraformTypeList(tfAction[constChannels]),
@@ -141,6 +155,18 @@ func buildDeploymentActionResource(tfAction map[string]interface{}) octopusdeplo
 	if workerPoolID != nil {
 		action.WorkerPoolID = workerPoolID.(string)
 	}
+
+	containerImage := tfAction["container_image_id"]
+	containerImageFeedId := tfAction["container_image_feed_id"]
+
+	// if containerImage != nil {
+	// 	// action.ContainerImage = containerImage.(string)
+		action.Container =	map[string]string{
+			"Image":  containerImage.(string),
+			"FeedId":  containerImageFeedId.(string),
+		}
+
+	// }	
 
 	if primaryPackage, ok := tfAction[constPrimaryPackage]; ok {
 		tfPrimaryPackage := primaryPackage.(*schema.Set).List()
