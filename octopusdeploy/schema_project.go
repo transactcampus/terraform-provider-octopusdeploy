@@ -3,9 +3,9 @@ package octopusdeploy
 import (
 	"context"
 
-	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 )
 
 func expandActionTemplateParameters(actionTemplateParameters []interface{}) []*octopusdeploy.ActionTemplateParameter {
@@ -313,7 +313,7 @@ func getProjectDataSchema() map[string]*schema.Schema {
 			Computed: true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
-					"name": &schema.Schema{
+					"name": {
 						Required:     true,
 						Type:         schema.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -525,7 +525,7 @@ func getProjectSchema() map[string]*schema.Schema {
 			Optional: true,
 			Type:     schema.TypeString,
 		},
-		"name": &schema.Schema{
+		"name": {
 			Required:     true,
 			Type:         schema.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,

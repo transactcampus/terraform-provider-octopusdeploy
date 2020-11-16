@@ -3,9 +3,9 @@ package octopusdeploy
 import (
 	"context"
 
-	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 )
 
 func fetchAndReadAccount(ctx context.Context, d *schema.ResourceData, m interface{}) (octopusdeploy.IAccount, diag.Diagnostics) {

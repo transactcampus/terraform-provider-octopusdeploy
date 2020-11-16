@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 )
 
 func expandDeploymentTarget(d *schema.ResourceData) *octopusdeploy.DeploymentTarget {
@@ -168,7 +168,7 @@ func flattenDeploymentTarget(ctx context.Context, d *schema.ResourceData, deploy
 
 func getDeploymentTargetSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"name": &schema.Schema{
+		"name": {
 			Required:     true,
 			Type:         schema.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,

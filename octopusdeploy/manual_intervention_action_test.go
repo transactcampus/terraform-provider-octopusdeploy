@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 )
 
 func TestAccOctopusDeployManualInterventionAction(t *testing.T) {

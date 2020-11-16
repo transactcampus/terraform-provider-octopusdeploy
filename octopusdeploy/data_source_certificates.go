@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 )
 
 func dataSourceCertificates() *schema.Resource {

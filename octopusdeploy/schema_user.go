@@ -3,8 +3,8 @@ package octopusdeploy
 import (
 	"context"
 
-	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 )
 
 func expandUser(d *schema.ResourceData) *octopusdeploy.User {

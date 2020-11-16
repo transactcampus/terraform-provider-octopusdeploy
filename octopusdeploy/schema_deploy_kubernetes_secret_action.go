@@ -3,8 +3,8 @@ package octopusdeploy
 import (
 	"encoding/json"
 
-	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 )
 
 func getDeployKubernetesSecretActionSchema() *schema.Schema {

@@ -3,9 +3,9 @@ package octopusdeploy
 import (
 	"context"
 
-	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 )
 
 func expandCertificate(d *schema.ResourceData) *octopusdeploy.CertificateResource {
@@ -139,27 +139,27 @@ func getCertificateDataSchema() map[string]*schema.Schema {
 						Optional: true,
 						Type:     schema.TypeBool,
 					},
-					"issuer_common_name": &schema.Schema{
+					"issuer_common_name": {
 						Optional: true,
 						Type:     schema.TypeString,
 					},
-					"issuer_distinguished_name": &schema.Schema{
+					"issuer_distinguished_name": {
 						Optional: true,
 						Type:     schema.TypeString,
 					},
-					"issuer_organization": &schema.Schema{
+					"issuer_organization": {
 						Optional: true,
 						Type:     schema.TypeString,
 					},
-					"name": &schema.Schema{
+					"name": {
 						Optional: true,
 						Type:     schema.TypeString,
 					},
-					"not_after": &schema.Schema{
+					"not_after": {
 						Optional: true,
 						Type:     schema.TypeString,
 					},
-					"not_before": &schema.Schema{
+					"not_before": {
 						Optional: true,
 						Type:     schema.TypeString,
 					},
@@ -167,15 +167,15 @@ func getCertificateDataSchema() map[string]*schema.Schema {
 						Optional: true,
 						Type:     schema.TypeString,
 					},
-					"replaced_by": &schema.Schema{
+					"replaced_by": {
 						Optional: true,
 						Type:     schema.TypeString,
 					},
-					"serial_number": &schema.Schema{
+					"serial_number": {
 						Optional: true,
 						Type:     schema.TypeString,
 					},
-					"signature_algorithm_name": &schema.Schema{
+					"signature_algorithm_name": {
 						Optional: true,
 						Type:     schema.TypeString,
 					},
@@ -184,19 +184,19 @@ func getCertificateDataSchema() map[string]*schema.Schema {
 						Optional: true,
 						Elem:     &schema.Schema{Type: schema.TypeString},
 					},
-					"subject_common_name": &schema.Schema{
+					"subject_common_name": {
 						Optional: true,
 						Type:     schema.TypeString,
 					},
-					"subject_distinguished_name": &schema.Schema{
+					"subject_distinguished_name": {
 						Optional: true,
 						Type:     schema.TypeString,
 					},
-					"subject_organization": &schema.Schema{
+					"subject_organization": {
 						Optional: true,
 						Type:     schema.TypeString,
 					},
-					"self_signed": &schema.Schema{
+					"self_signed": {
 						Optional: true,
 						Type:     schema.TypeBool,
 					},
@@ -211,11 +211,11 @@ func getCertificateDataSchema() map[string]*schema.Schema {
 						Optional: true,
 						Elem:     &schema.Schema{Type: schema.TypeString},
 					},
-					"thumbprint": &schema.Schema{
+					"thumbprint": {
 						Optional: true,
 						Type:     schema.TypeString,
 					},
-					"version": &schema.Schema{
+					"version": {
 						Optional: true,
 						Type:     schema.TypeInt,
 					},
@@ -247,7 +247,7 @@ func getCertificateSchema() map[string]*schema.Schema {
 			Optional: true,
 			Type:     schema.TypeBool,
 		},
-		"name": &schema.Schema{
+		"name": {
 			Required:     true,
 			Type:         schema.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,
