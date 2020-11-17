@@ -1,11 +1,11 @@
 #!/bin/bash
 set -eo pipefail	set -eo pipefail
 
-# Download the package
-go get -u github.com/tcnksm/ghr
-
 # Get and export release version
 . ci-scripts/helpers/get_release_version.sh $1
+
+# Download the package
+go get -u github.com/tcnksm/ghr
 
 # Get repository name
 REPOSITORY_NAME=$(basename `git rev-parse --show-toplevel`)
