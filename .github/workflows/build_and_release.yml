@@ -36,4 +36,4 @@ jobs:
         run: bash ci-scripts/build.sh ${{ steps.latestRelease.outputs.release }}
 
       - name: Create release
-        run: bash ci-scripts/helpers/create_github_release.sh        
+        run: bash ci-scripts/helpers/create_github_release.sh ${{ steps.latestRelease.outputs.release }}       

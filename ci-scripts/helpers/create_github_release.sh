@@ -10,7 +10,7 @@ go get -u github.com/tcnksm/ghr
 
 REPOSITORY_NAME=$(basename `git rev-parse --show-toplevel`)
 
-ci-scripts/get_release_version.sh
+. ci-scripts/helpers/get_release_version.sh $1
 
 # ghr -t ${API_TOKEN} -r ${REPOSITORY_NAME} -c ${BRANCH} -delete ${RELEASE_VERSION} ./artifacts/
 ghr -t ${API_TOKEN} -r ${REPOSITORY_NAME} -c ${BRANCH} ${RELEASE_VERSION} ./artifacts/
