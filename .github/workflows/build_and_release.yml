@@ -1,0 +1,39 @@
+name: build and release
+
+on:
+  push: 
+    branches: 
+      - transact
+
+jobs:
+
+  Process:
+      env:
+        API_TOKEN: ${{ secrets.API_TOKEN }}
+        BRANCH: ${{ secrets.BRANCH_TO_RELEASE }}
+
+      name: Build
+      runs-on: ubuntu-latest
+      steps:
+
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - id: latestRelease
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          owner: transactcampus
+          repo: terraform-provider-octopusdeploy
+          excludes: prerelease, draft        
+
+      - name: Run build
+        run: bash ci-scripts/build.sh ${{ steps.latestRelease.outputs.release }}
+
+      - name: Create release
+        run: bash ci-scripts/helpers/create_github_release.sh ${{ steps.latestRelease.outputs.release }}  

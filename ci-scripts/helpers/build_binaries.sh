@@ -6,7 +6,8 @@ if [ -z "${RELEASE_VERSION}" ]; then
     exit 1
 fi
 
-BUILD_PATH_TEMPLATE="build/terraform-provider-octopusdeploy-{{.OS}}_{{.Arch}}-${RELEASE_VERSION}/{{.Dir}}_v${RELEASE_VERSION}"
+BUILD_PATH_TEMPLATE="build/terraform-provider-octopusdeploy-{{.OS}}_{{.Arch}}-${RELEASE_VERSION}/{{.Dir}}_${RELEASE_VERSION}"
 
 go get github.com/mitchellh/gox
-gox -osarch="linux/amd64" -osarch="linux/386" -osarch="windows/amd64" -osarch="windows/386" -osarch="darwin/amd64" -osarch="darwin/386" -output="${BUILD_PATH_TEMPLATE}"
+# gox -osarch="linux/amd64" -osarch="linux/386" -osarch="windows/amd64" -osarch="windows/386" -osarch="darwin/amd64" -osarch="darwin/386" -output="${BUILD_PATH_TEMPLATE}"
+gox -osarch="linux/amd64" -osarch="linux/386" -osarch="windows/amd64" -osarch="windows/386" -osarch="darwin/amd64" -output="${BUILD_PATH_TEMPLATE}"
