@@ -5,7 +5,7 @@ set -eo pipefail
 ci-scripts/helpers/clean.sh
 
 # Load the release version environment variable
-. ci-scripts/helpers/get_release_version.sh
+. ci-scripts/helpers/get_release_version.sh $1
 
 # Build the binaries
 ci-scripts/helpers/build_binaries.sh
