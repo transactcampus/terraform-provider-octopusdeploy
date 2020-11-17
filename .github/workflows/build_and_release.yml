@@ -3,7 +3,7 @@ name: build and release
 on:
   push: 
     branches: 
-      - ${{ secrets.BRANCH_TO_RELEASE }}
+      - DE-117-build-and-release
 
 jobs:
 
