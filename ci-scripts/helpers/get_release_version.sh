@@ -15,7 +15,7 @@ set -eo pipefail
 # export RELEASE_VERSION=$RELEASE_VERSION
 
 # Get latest tag ref
-REF=$(git rev-list --tags --max-count=1)
+REF=$(git rev-list transact --tags --max-count=1)
 
 # Get latest tag 
 LATEST_TAG=$(git describe --tags ${REF}) 

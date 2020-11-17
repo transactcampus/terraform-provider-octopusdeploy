@@ -7,7 +7,11 @@ on:
 
 jobs:
 
-  build:
+  Process:
+      env:
+        API_TOKEN: ${{ secrets.API_TOKEN }}
+        BRANCH: ${{ secrets.BRANCH_TO_RELEASE }}
+
       name: Build
       runs-on: ubuntu-latest
       steps:
@@ -24,15 +28,5 @@ jobs:
       - name: Run build
         run: bash ci-scripts/build.sh
 
-  release:
-    env:
-      API_TOKEN: ${{ secrets.API_TOKEN }}
-      BRANCH: ${{ secrets.BRANCH_TO_RELEASE }}
-
-
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-
-    - name: Create release
-      run: bash ci-scripts/helpers/create_github_release.sh
+      - name: Create release
+        run: bash ci-scripts/helpers/create_github_release.sh        
