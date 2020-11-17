@@ -10,4 +10,5 @@ go get -u github.com/tcnksm/ghr
 
 REPOSITORY_NAME=$(basename `git rev-parse --show-toplevel`)
 
-ghr -t ${API_TOKEN} -r ${REPOSITORY_NAME} -c ${BRANCH} -delete ${RELEASE_VERSION} ./artifacts/
+# ghr -t ${API_TOKEN} -r ${REPOSITORY_NAME} -c ${BRANCH} -delete ${RELEASE_VERSION} ./artifacts/
+ghr -t ${API_TOKEN} -r ${REPOSITORY_NAME} -c ${BRANCH} ./artifacts/
