@@ -4,6 +4,8 @@ set -eo pipefail
 # Clean the directories
 ci-scripts/helpers/clean.sh
 
+export GITHUB_SHA=$1
+
 # Load the release version environment variable
 . ci-scripts/helpers/get_release_version.sh
 
