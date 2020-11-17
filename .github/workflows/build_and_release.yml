@@ -1,0 +1,38 @@
+name: build and release
+
+on:
+  push: 
+    branches: 
+      - ${{ secrets.BRANCH_TO_RELEASE }}
+
+jobs:
+
+  build:
+      name: Build
+      runs-on: ubuntu-latest
+      steps:
+
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Run build
+        run: bash ci-scripts/build.sh
+
+  release:
+    env:
+      API_TOKEN: ${{ secrets.API_TOKEN }}
+      BRANCH: ${{ secrets.BRANCH_TO_RELEASE }}
+
+
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Create release
+      run: bash ci-scripts/helpers/create_github_release.sh
