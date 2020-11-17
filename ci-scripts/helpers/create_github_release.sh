@@ -1,34 +1,19 @@
 #!/bin/bash
-set -eo pipefail
-
-# if [ -z "${CIRCLE_BUILD_NUM}" ]; then
-#    echo "The environment variable CIRCLE_BUILD_NUM is not set. Setting as 999."	#     echo "The environment variable CIRCLE_BUILD_NUM is not set. Setting as 999."
- #   CIRCLE_BUILD_NUM="999"	#     CIRCLE_BUILD_NUM="999"
-#fi	# fi
+set -eo pipefail	set -eo pipefail
 
 
-#RELEASE_VERSION="0.0.2-alpha.${CIRCLE_BUILD_NUM}"	# RELEASE_VERSION="0.0.2-alpha.${CIRCLE_BUILD_NUM}"
-#echo "Release version is ${RELEASE_VERSION}"	# echo "Release version is ${RELEASE_VERSION}"
+# if [ -z "${RELEASE_VERSION}" ]; then	# if [ -z "${RELEASE_VERSION}" ]; then
+    # echo "The environment variable RELEASE_VERSION needs to be set. Exiting script."	#     echo "The environment variable RELEASE_VERSION needs to be set. Exiting script."
+    # exit 1	#     exit 1
+# fi	# fi
 
-# export RELEASE_VERSION=$RELEASE_VERSION
 
-# Get latest tag ref
-# REF=$(git rev-list --tags --max-count=1 HEAD)
+go get -u github.com/tcnksm/ghr	go get -u github.com/tcnksm/ghr
 
-# Get latest tag 
-# LATEST_TAG=$(git describe --tags 0aabd2c2c8356de0f49f49131b13c4c4c5db5108) 
 
-# Get latest tag as param
-LATEST_TAG=$1
+ghr -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${RELEASE_VERSION} ./artifacts/	REPOSITORY_NAME=$(basename `git rev-parse --show-toplevel`)
 
-# Remove suffix
-LATEST_TAG=${LATEST_TAG/v/''}
+. ci-scripts/helpers/get_release_version.sh $1
 
-# Determine next version
-RELEASE_VERSION=`echo $LATEST_TAG | awk -F. -v OFS=. 'NF==1{print ++$NF}; NF>1{if(length($NF+1)>length($NF))$(NF-1)++; $NF=sprintf("%0*d", length($NF), ($NF+1)%(10^length($NF))); print}'`
-
-# Add suffix
-RELEASE_VERSION="v${RELEASE_VERSION}"
-
-echo "Release version is ${RELEASE_VERSION}"
-export RELEASE_VERSION=$RELEASE_VERSION 
+# ghr -t ${API_TOKEN} -r ${REPOSITORY_NAME} -c ${BRANCH} -delete ${RELEASE_VERSION} ./artifacts/
+ghr -t ${API_TOKEN} -r ${REPOSITORY_NAME} -c ${BRANCH} ${RELEASE_VERSION} ./artifacts/
