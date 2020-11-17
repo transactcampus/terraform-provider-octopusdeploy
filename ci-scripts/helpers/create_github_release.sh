@@ -8,7 +8,7 @@ set -eo pipefail	set -eo pipefail
 # fi	# fi
 
 
-go get -u github.com/tcnksm/ghr	go get -u github.com/tcnksm/ghr
+go get -u github.com/tcnksm/ghr
 
 
 ghr -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${RELEASE_VERSION} ./artifacts/	REPOSITORY_NAME=$(basename `git rev-parse --show-toplevel`)
