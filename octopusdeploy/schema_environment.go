@@ -59,8 +59,9 @@ func getEnvironmentSchema() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"sort_order": &schema.Schema{
-			Computed: true,
 			Type:     schema.TypeInt,
+			Optional: true,
+			Default:  false,
 		},
 		"use_guided_failure": &schema.Schema{
 			Optional: true,

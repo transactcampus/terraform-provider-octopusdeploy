@@ -88,6 +88,13 @@ func expandDeploymentStep(tfStep map[string]interface{}) octopusdeploy.Deploymen
 		}
 	}
 
+	if attr, ok := tfStep["deploy_transact_jira_gate_action"]; ok {
+		for _, tfAction := range attr.([]interface{}) {
+			action := buildDeployTransactJiraGateActionResource(tfAction.(map[string]interface{}))
+			step.Actions = append(step.Actions, action)
+		}
+	}
+
 	return step
 }
 
@@ -117,6 +124,7 @@ func getDeploymentStepSchema() *schema.Schema {
 					Type:        schema.TypeString,
 				},
 				"deploy_kubernetes_secret_action": getDeployKubernetesSecretActionSchema(),
+				"deploy_transact_jira_gate_action": getDeployTransactJiraGateActionSchema(),
 				"deploy_package_action":           getDeployPackageAction(),
 				"deploy_windows_service_action":   getDeployWindowsServiceActionSchema(),
 				"manual_intervention_action":      getManualInterventionActionSchema(),
