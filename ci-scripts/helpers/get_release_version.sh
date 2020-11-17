@@ -21,6 +21,8 @@ set -eo pipefail
 # Get latest tag from variable
 LATEST_TAG=$1
 
+echo "Latest released tag ${LATEST_TAG}"
+
 # Remove suffix
 LATEST_TAG=${LATEST_TAG/v/''}
 
