@@ -15,7 +15,7 @@ set -eo pipefail
 # export RELEASE_VERSION=$RELEASE_VERSION
 
 # Get latest tag ref
-REF=$(git rev-list --tags --max-count=1 ${GITHUB_SHA})
+REF=$(git rev-list --tags --max-count=1 HEAD)
 
 # Get latest tag 
 LATEST_TAG=$(git describe --tags ${REF}) 
