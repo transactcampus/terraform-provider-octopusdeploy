@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eo pipefail	set -eo pipefail
+set -eo pipefail
 
 # Get and export release version
 . ci-scripts/helpers/get_release_version.sh $1
