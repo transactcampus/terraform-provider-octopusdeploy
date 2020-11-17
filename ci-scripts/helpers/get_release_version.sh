@@ -15,10 +15,12 @@ set -eo pipefail
 # export RELEASE_VERSION=$RELEASE_VERSION
 
 # Get latest tag ref
-REF=$(git rev-list --tags --max-count=1 HEAD)
+# REF=$(git rev-list --tags --max-count=1 HEAD)
 
 # Get latest tag 
-LATEST_TAG=$(git describe --tags 0aabd2c2c8356de0f49f49131b13c4c4c5db5108) 
+# LATEST_TAG=$(git describe --tags 0aabd2c2c8356de0f49f49131b13c4c4c5db5108) 
+
+LATEST_TAG=$1
 
 # Remove suffix
 LATEST_TAG=${LATEST_TAG/v/''}
