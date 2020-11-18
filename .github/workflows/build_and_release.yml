@@ -9,7 +9,7 @@ jobs:
 
   Process:
       env:
-        API_TOKEN: ${{ secrets.API_TOKEN }}
+        API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         BRANCH: ${{ secrets.BRANCH_TO_RELEASE }}
 
       name: Build
