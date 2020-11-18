@@ -1,21 +1,15 @@
 name: build and release
 
 on:
-  push: 
-    branches: 
+  push:
+    branches:
       - transact
 
 jobs:
-
   Process:
-      env:
-        API_TOKEN: ${{ secrets.API_TOKEN }}
-        BRANCH: ${{ secrets.BRANCH_TO_RELEASE }}
-
-      name: Build
-      runs-on: ubuntu-latest
-      steps:
-
+    name: Process
+    runs-on: ubuntu-latest
+    steps:
       - name: Set up Go 1.x
         uses: actions/setup-go@v2
         with:
@@ -30,10 +24,10 @@ jobs:
         with:
           owner: transactcampus
           repo: terraform-provider-octopusdeploy
-          excludes: prerelease, draft        
+          excludes: prerelease, draft
 
       - name: Run build
         run: bash ci-scripts/build.sh ${{ steps.latestRelease.outputs.release }}
 
       - name: Create release
-        run: bash ci-scripts/helpers/create_github_release.sh ${{ steps.latestRelease.outputs.release }}  
+        run: bash ci-scripts/helpers/create_github_release.sh ${{ steps.latestRelease.outputs.release }} ${{ secrets.GITHUB_TOKEN }} "transact"
