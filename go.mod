@@ -24,7 +24,7 @@ require (
 	github.com/mitchellh/gox v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/oklog/run v1.1.0 // indirect
-	github.com/transactcampus/go-octopusdeploy v1.7.4-0.20201120083925-364dd84bc095
+	github.com/transactcampus/go-octopusdeploy v1.7.8
 	github.com/zclconf/go-cty v1.7.0 // indirect
 	golang.org/x/crypto v0.0.0-20201117144127-c1f2f97bffc9 // indirect
 	golang.org/x/net v0.0.0-20201031054903-ff519b6c9102 // indirect
