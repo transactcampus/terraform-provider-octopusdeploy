@@ -56,6 +56,7 @@ const (
 	constResponsibleTeams                   string = "responsible_teams"
 	constRoles                              string = "roles"
 	constRunOnServer                        string = "run_on_server"
+	constRunbookProcess                     string = "runbook_process"
 	constScope                              string = "scope"
 	constScriptParameters                   string = "script_parameters"
 	constScriptFileName                     string = "script_file_name"
