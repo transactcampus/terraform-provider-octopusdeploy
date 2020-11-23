@@ -3,9 +3,9 @@ package octopusdeploy
 import (
 	"context"
 
-	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 )
 
 func expandEnvironment(d *schema.ResourceData) *octopusdeploy.Environment {
@@ -30,7 +30,23 @@ func expandEnvironment(d *schema.ResourceData) *octopusdeploy.Environment {
 		environment.UseGuidedFailure = v.(bool)
 	}
 
+	if v, ok := d.GetOk("extension_settings"); ok {
+		environment.ExtensionSettings = expandEnvironmentExtensionSettingsValues(v.(*schema.Set).List())
+	}
+
 	return environment
+}
+
+func expandEnvironmentExtensionSettingsValues(extensionSettingsValues []interface{}) []*octopusdeploy.ExtensionSettingsValues {
+	expandedExtensionSettingsValues := make([]*octopusdeploy.ExtensionSettingsValues, len(extensionSettingsValues))
+	for _, extensionSettingsValue := range extensionSettingsValues {
+		extensionSettingsValueMap := extensionSettingsValue.(map[string]interface{})
+		expandedExtensionSettingsValues = append(expandedExtensionSettingsValues, &octopusdeploy.ExtensionSettingsValues{
+			ExtensionID: extensionSettingsValueMap["extension_id"].(string),
+			Values:      extensionSettingsValueMap["values"].([]interface{}),
+		})
+	}
+	return expandedExtensionSettingsValues
 }
 
 func flattenEnvironment(ctx context.Context, d *schema.ResourceData, environment *octopusdeploy.Environment) {
@@ -39,8 +55,23 @@ func flattenEnvironment(ctx context.Context, d *schema.ResourceData, environment
 	d.Set("name", environment.Name)
 	d.Set("sort_order", environment.SortOrder)
 	d.Set("use_guided_failure", environment.UseGuidedFailure)
+	d.Set("extension_settings", environment.ExtensionSettings)
 
 	d.SetId(environment.GetID())
+}
+
+func getEnvironmentExtensionSettingsSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"extension_id": {
+			Computed: true,
+			Type:     schema.TypeString,
+		},
+		"values": {
+			Computed: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+			Type:     schema.TypeList,
+		},
+	}
 }
 
 func getEnvironmentSchema() map[string]*schema.Schema {
@@ -66,6 +97,11 @@ func getEnvironmentSchema() map[string]*schema.Schema {
 		"use_guided_failure": &schema.Schema{
 			Optional: true,
 			Type:     schema.TypeBool,
+		},
+		"extension_settings": {
+			Optional: true,
+			Elem:     &schema.Resource{Schema: getEnvironmentExtensionSettingsSchema()},
+			Type:     schema.TypeSet,
 		},
 	}
 }
