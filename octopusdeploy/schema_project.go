@@ -3,9 +3,9 @@ package octopusdeploy
 import (
 	"context"
 
-	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 )
 
 func expandActionTemplateParameters(actionTemplateParameters []interface{}) []*octopusdeploy.ActionTemplateParameter {
@@ -332,7 +332,7 @@ func getProjectDataSchema() map[string]*schema.Schema {
 						Type:     schema.TypeString,
 					},
 					"connectivity_policy": {
-						Computed: true,
+						Optional: true,
 						Elem:     &schema.Resource{Schema: getConnectivityPolicySchema()},
 						Type:     schema.TypeList,
 					},
@@ -461,7 +461,7 @@ func getProjectSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 		},
 		"connectivity_policy": {
-			Computed: true,
+			Optional: true,
 			Elem:     &schema.Resource{Schema: getConnectivityPolicySchema()},
 			Type:     schema.TypeList,
 		},
