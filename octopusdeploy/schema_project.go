@@ -332,7 +332,7 @@ func getProjectDataSchema() map[string]*schema.Schema {
 						Type:     schema.TypeString,
 					},
 					"connectivity_policy": {
-						Computed: true,
+						Optional: true,
 						Elem:     &schema.Resource{Schema: getConnectivityPolicySchema()},
 						Type:     schema.TypeList,
 					},
@@ -461,7 +461,7 @@ func getProjectSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 		},
 		"connectivity_policy": {
-			Computed: true,
+			Optional: true,
 			Elem:     &schema.Resource{Schema: getConnectivityPolicySchema()},
 			Type:     schema.TypeList,
 		},
