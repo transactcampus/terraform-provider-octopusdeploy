@@ -11,6 +11,7 @@ import (
 
 func dataSourceTagSets() *schema.Resource {
 	return &schema.Resource{
+		Description: "Provides information about existing tag sets.",
 		ReadContext: dataSourceTagSetsRead,
 		Schema:      getTagSetDataSchema(),
 	}
@@ -32,11 +33,7 @@ func dataSourceTagSetsRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	flattenedTagSets := []interface{}{}
 	for _, tagSet := range tagSets.Items {
-		flattenedTagSet := map[string]interface{}{
-			"id":   tagSet.GetID(),
-			"name": tagSet.Name,
-		}
-		flattenedTagSets = append(flattenedTagSets, flattenedTagSet)
+		flattenedTagSets = append(flattenedTagSets, flattenTagSet(tagSet))
 	}
 
 	d.Set("tag_sets", flattenedTagSets)

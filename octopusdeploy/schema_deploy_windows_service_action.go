@@ -1,6 +1,8 @@
 package octopusdeploy
 
 import (
+	"strconv"
+
 	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -23,79 +25,86 @@ func addWindowsServiceFeature(parent *schema.Resource) {
 		Schema: map[string]*schema.Schema{},
 	}
 	addDeployWindowsServiceSchema(element)
-	parent.Schema[constWindowsService] = &schema.Schema{
+	parent.Schema["windows_service"] = &schema.Schema{
 		Description: "Deploy a windows service feature",
-		Type:        schema.TypeSet,
-		Optional:    true,
-		MaxItems:    1,
 		Elem:        element,
+		MaxItems:    1,
+		Optional:    true,
+		Type:        schema.TypeSet,
 	}
 }
 
 func addDeployWindowsServiceSchema(element *schema.Resource) {
-	element.Schema[constServiceName] = &schema.Schema{
-		Type:        schema.TypeString,
-		Description: "The name of the service",
-		Required:    true,
-	}
-	element.Schema[constDisplayName] = &schema.Schema{
-		Type:        schema.TypeString,
-		Description: "The display name of the service (optional)",
-		Optional:    true,
-	}
-	element.Schema["description"] = &schema.Schema{
-		Type:        schema.TypeString,
-		Description: "User-friendly description of the service (optional)",
-		Optional:    true,
-	}
-	element.Schema[constExecutablePath] = &schema.Schema{
-		Type:        schema.TypeString,
-		Description: "The path to the executable relative to the package installation directory",
-		Required:    true,
-	}
-	element.Schema[constArguments] = &schema.Schema{
-		Type:        schema.TypeString,
+	element.Schema["arguments"] = &schema.Schema{
 		Description: "The command line arguments that will be passed to the service when it starts",
 		Optional:    true,
-	}
-	element.Schema[constServiceAccount] = &schema.Schema{
 		Type:        schema.TypeString,
-		Description: "Which built-in account will the service run under. Can be LocalSystem, NT Authority\\NetworkService, NT Authority\\LocalService, _CUSTOM or an expression",
-		Optional:    true,
-		Default:     "LocalSystem",
 	}
-	element.Schema[constCustomAccountName] = &schema.Schema{
-		Type:        schema.TypeString,
+	element.Schema["create_or_update_service"] = &schema.Schema{
+		Computed: true,
+		Optional: true,
+		Type:     schema.TypeBool,
+	}
+	element.Schema["custom_account_name"] = &schema.Schema{
 		Description: "The Windows/domain account of the custom user that the service will run under",
 		Optional:    true,
-	}
-	element.Schema[constCustomAccountPassword] = &schema.Schema{
 		Type:        schema.TypeString,
+	}
+	element.Schema["custom_account_password"] = &schema.Schema{
+		Computed:    true,
 		Description: "The password for the custom account",
 		Optional:    true,
-	}
-	element.Schema[constStartMode] = &schema.Schema{
+		Sensitive:   true,
 		Type:        schema.TypeString,
-		Description: "When will the service start. Can be auto, delayed-auto, manual, unchanged or an expression",
-		Optional:    true,
-		Default:     "auto",
 	}
-	element.Schema[constDependencies] = &schema.Schema{
-		Type:        schema.TypeString,
+	element.Schema["dependencies"] = &schema.Schema{
 		Description: "Any dependencies that the service has. Separate the names using forward slashes (/).",
 		Optional:    true,
+		Type:        schema.TypeString,
+	}
+	element.Schema["description"] = &schema.Schema{
+		Description: "User-friendly description of the service (optional)",
+		Optional:    true,
+		Type:        schema.TypeString,
+	}
+	element.Schema["display_name"] = &schema.Schema{
+		Description: "The display name of the service (optional)",
+		Optional:    true,
+		Type:        schema.TypeString,
+	}
+	element.Schema["executable_path"] = &schema.Schema{
+		Description: "The path to the executable relative to the package installation directory",
+		Required:    true,
+		Type:        schema.TypeString,
+	}
+	element.Schema["service_account"] = &schema.Schema{
+		Description: "Which built-in account will the service run under. Can be LocalSystem, NT Authority\\NetworkService, NT Authority\\LocalService, _CUSTOM or an expression",
+		Default:     "LocalSystem",
+		Optional:    true,
+		Type:        schema.TypeString,
+	}
+	element.Schema["service_name"] = &schema.Schema{
+		Description: "The name of the service",
+		Required:    true,
+		Type:        schema.TypeString,
+	}
+	element.Schema["start_mode"] = &schema.Schema{
+		Default:     "auto",
+		Description: "When will the service start. Can be auto, delayed-auto, manual, unchanged or an expression",
+		Optional:    true,
+		Type:        schema.TypeString,
 	}
 }
 
-func buildDeployWindowsServiceActionResource(tfAction map[string]interface{}) octopusdeploy.DeploymentAction {
-	resource := buildDeploymentActionResource(tfAction)
-	resource.ActionType = "Octopus.WindowsService"
-	addWindowsServiceToActionResource(tfAction, resource)
-	return resource
+func expandDeployWindowsServiceAction(tfAction map[string]interface{}) octopusdeploy.DeploymentAction {
+	deploymentAction := expandDeploymentAction(tfAction)
+	deploymentAction.ActionType = "Octopus.WindowsService"
+	addWindowsServiceToActionResource(tfAction, deploymentAction)
+	return deploymentAction
 }
 
 func addWindowsServiceFeatureToActionResource(tfAction map[string]interface{}, action octopusdeploy.DeploymentAction) {
-	if windowsServiceList, ok := tfAction[constWindowsService]; ok {
+	if windowsServiceList, ok := tfAction["windows_service"]; ok {
 		tfWindowsService := windowsServiceList.(*schema.Set).List()
 		if len(tfWindowsService) > 0 {
 			addWindowsServiceToActionResource(tfWindowsService[0].(map[string]interface{}), action)
@@ -104,10 +113,13 @@ func addWindowsServiceFeatureToActionResource(tfAction map[string]interface{}, a
 }
 
 func addWindowsServiceToActionResource(tfAction map[string]interface{}, action octopusdeploy.DeploymentAction) {
-	action.Properties["Octopus.Action.WindowsService.CreateOrUpdateService"] = "True"
-	action.Properties["Octopus.Action.WindowsService.ServiceName"] = tfAction[constServiceName].(string)
+	if createOrUpdateService, ok := tfAction["create_or_update_service"]; ok {
+		action.Properties["Octopus.Action.WindowsService.CreateOrUpdateService"] = strconv.FormatBool(createOrUpdateService.(bool))
+	}
 
-	displayName := tfAction[constDisplayName]
+	action.Properties["Octopus.Action.WindowsService.ServiceName"] = tfAction["service_name"].(string)
+
+	displayName := tfAction["display_name"]
 	if displayName != nil {
 		action.Properties["Octopus.Action.WindowsService.DisplayName"] = displayName.(string)
 	}
@@ -117,28 +129,28 @@ func addWindowsServiceToActionResource(tfAction map[string]interface{}, action o
 		action.Properties["Octopus.Action.WindowsService.Description"] = description.(string)
 	}
 
-	action.Properties["Octopus.Action.WindowsService.ExecutablePath"] = tfAction[constExecutablePath].(string)
+	action.Properties["Octopus.Action.WindowsService.ExecutablePath"] = tfAction["executable_path"].(string)
 
-	args := tfAction[constArguments]
+	args := tfAction["arguments"]
 	if args != nil {
 		action.Properties["Octopus.Action.WindowsService.Arguments"] = args.(string)
 	}
 
-	action.Properties["Octopus.Action.WindowsService.ServiceAccount"] = tfAction[constServiceAccount].(string)
+	action.Properties["Octopus.Action.WindowsService.ServiceAccount"] = tfAction["service_account"].(string)
 
-	accountName := tfAction[constCustomAccountName]
+	accountName := tfAction["custom_account_name"]
 	if accountName != nil {
 		action.Properties["Octopus.Action.WindowsService.CustomAccountName"] = accountName.(string)
 	}
 
-	accountPassword := tfAction[constCustomAccountPassword]
+	accountPassword := tfAction["custom_account_password"]
 	if accountPassword != nil {
 		action.Properties["Octopus.Action.WindowsService.CustomAccountPassword"] = accountPassword.(string)
 	}
 
-	action.Properties["Octopus.Action.WindowsService.StartMode"] = tfAction[constStartMode].(string)
+	action.Properties["Octopus.Action.WindowsService.StartMode"] = tfAction["start_mode"].(string)
 
-	dependencies := tfAction[constDependencies]
+	dependencies := tfAction["dependencies"]
 	if dependencies != nil {
 		action.Properties["Octopus.Action.WindowsService.Dependencies"] = dependencies.(string)
 	}

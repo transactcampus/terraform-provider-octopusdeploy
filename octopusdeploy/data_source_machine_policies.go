@@ -2,56 +2,42 @@ package octopusdeploy
 
 import (
 	"context"
+	"time"
 
 	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func dataSourceMachinePolicy() *schema.Resource {
+func dataSourceMachinePolicies() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMachinePolicyReadByName,
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Required: true,
-				Type:     schema.TypeString,
-			},
-			"description": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"isdefault": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-		},
+		Description: "Provides information about existing machine policies.",
+		ReadContext: dataSourceMachinePoliciesRead,
+		Schema:      getMachinePolicyDataSchema(),
 	}
 }
 
-func dataSourceMachinePolicyReadByName(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	name := d.Get("name").(string)
+func dataSourceMachinePoliciesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	query := octopusdeploy.MachinePoliciesQuery{
+		IDs:         expandArray(d.Get("ids").([]interface{})),
+		PartialName: d.Get("partial_name").(string),
+		Skip:        d.Get("skip").(int),
+		Take:        d.Get("take").(int),
+	}
 
 	client := m.(*octopusdeploy.Client)
-	resourceList, err := client.MachinePolicies.GetAll()
+	machinePolicies, err := client.MachinePolicies.Get(query)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	if len(resourceList) == 0 {
-		return nil
+
+	flattenedMachinePolicies := []interface{}{}
+	for _, machinePolicy := range machinePolicies.Items {
+		flattenedMachinePolicies = append(flattenedMachinePolicies, flattenMachinePolicy(machinePolicy))
 	}
 
-	// NOTE: two or more machine policies could have the same name in Octopus
-	// and therefore, a better search criteria needs to be implemented below
-
-	for _, resource := range resourceList {
-		if resource.Name == name {
-			d.SetId(resource.GetID())
-			d.Set("description", resource.Description)
-			d.Set("isdefault", resource.IsDefault)
-
-			return nil
-		}
-	}
+	d.Set("machine_policies", flattenedMachinePolicies)
+	d.SetId("Machine Policies " + time.Now().UTC().String())
 
 	return nil
 }

@@ -10,62 +10,17 @@ import (
 
 func dataSourceVariable() *schema.Resource {
 	return &schema.Resource{
+		Description: "Provides information about existing variables.",
 		ReadContext: dataSourceVariableReadByName,
-		Schema: map[string]*schema.Schema{
-			"project_id": {
-				Required: true,
-				Type:     schema.TypeString,
-			},
-			"name": {
-				Required: true,
-				Type:     schema.TypeString,
-			},
-			constType: {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			constValue: {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"description": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			constScope: schemaVariableScope,
-		},
+		Schema:      getVariableDataSchema(),
 	}
-}
-
-var schemaVariableScopeValue = &schema.Schema{
-	Type: schema.TypeList,
-	Elem: &schema.Schema{
-		Type: schema.TypeString,
-	},
-	Optional: true,
-}
-
-var schemaVariableScope = &schema.Schema{
-	Type:     schema.TypeSet,
-	MaxItems: 1,
-	Optional: true,
-	Elem: &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			constEnvironments: schemaVariableScopeValue,
-			constMachines:     schemaVariableScopeValue,
-			constActions:      schemaVariableScopeValue,
-			constRoles:        schemaVariableScopeValue,
-			constChannels:     schemaVariableScopeValue,
-			"tenant_tags":     schemaVariableScopeValue,
-		},
-	},
 }
 
 // tfVariableScopetoODVariableScope converts a Terraform ResourceData into an OctopusDeploy VariableScope
 func tfVariableScopetoODVariableScope(d *schema.ResourceData) *octopusdeploy.VariableScope {
 	// Get the schema set. We specify a MaxItems of 1, so we will only ever have zero or one items
 	// in our list.
-	tfSchemaSetInterface, ok := d.GetOk(constScope)
+	tfSchemaSetInterface, ok := d.GetOk("scope")
 	if !ok {
 		return nil
 	}
@@ -81,13 +36,12 @@ func tfVariableScopetoODVariableScope(d *schema.ResourceData) *octopusdeploy.Var
 	// Use the getSliceFromTerraformTypeList helper to convert the data from the map into []string and
 	// assign as the variable scopes we need
 	var newScope octopusdeploy.VariableScope
-	newScope.Environment = getSliceFromTerraformTypeList(tfSchemaList[constEnvironments])
-	newScope.Action = getSliceFromTerraformTypeList(tfSchemaList[constActions])
-	newScope.Role = getSliceFromTerraformTypeList(tfSchemaList[constRoles])
-	newScope.Channel = getSliceFromTerraformTypeList(tfSchemaList[constChannels])
-	newScope.Machine = getSliceFromTerraformTypeList(tfSchemaList[constMachines])
+	newScope.Action = getSliceFromTerraformTypeList(tfSchemaList["actions"])
+	newScope.Channel = getSliceFromTerraformTypeList(tfSchemaList["channels"])
+	newScope.Environment = getSliceFromTerraformTypeList(tfSchemaList["environments"])
+	newScope.Machine = getSliceFromTerraformTypeList(tfSchemaList["machines"])
+	newScope.Role = getSliceFromTerraformTypeList(tfSchemaList["roles"])
 	newScope.TenantTag = getSliceFromTerraformTypeList(tfSchemaList["tenant_tags"])
-
 	return &newScope
 }
 

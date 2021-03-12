@@ -37,24 +37,9 @@ func expandNuGetFeed(d *schema.ResourceData) *octopusdeploy.NuGetFeed {
 	return feed
 }
 
-func flattenNuGetFeed(ctx context.Context, d *schema.ResourceData, feed *octopusdeploy.NuGetFeed) {
-	d.Set("download_attempts", feed.DownloadAttempts)
-	d.Set("download_retry_backoff_seconds", feed.DownloadRetryBackoffSeconds)
-	d.Set("feed_uri", feed.FeedURI)
-	d.Set("is_enhanced_mode", feed.EnhancedMode)
-	d.Set("name", feed.Name)
-	// d.Set("password", feed.Password)
-	d.Set("username", feed.Username)
-
-	d.SetId(feed.GetID())
-}
-
 func getNuGetFeedDataSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"name": {
-			Required: true,
-			Type:     schema.TypeString,
-		},
+		"name": getNameSchema(true),
 	}
 }
 
@@ -79,19 +64,21 @@ func getNuGetFeedSchema() map[string]*schema.Schema {
 			Required: true,
 			Type:     schema.TypeString,
 		},
-		"name": {
-			Required: true,
-			Type:     schema.TypeString,
-		},
-		"password": {
-			Optional:  true,
-			Sensitive: true,
-			Type:      schema.TypeString,
-		},
-		"username": {
-			Optional:  true,
-			Sensitive: true,
-			Type:      schema.TypeString,
-		},
+		"name":     getNameSchema(true),
+		"password": getPasswordSchema(false),
+		"username": getUsernameSchema(false),
 	}
+}
+
+func setNuGetFeed(ctx context.Context, d *schema.ResourceData, feed *octopusdeploy.NuGetFeed) error {
+	d.Set("download_attempts", feed.DownloadAttempts)
+	d.Set("download_retry_backoff_seconds", feed.DownloadRetryBackoffSeconds)
+	d.Set("feed_uri", feed.FeedURI)
+	d.Set("is_enhanced_mode", feed.EnhancedMode)
+	d.Set("name", feed.Name)
+	d.Set("username", feed.Username)
+
+	d.SetId(feed.GetID())
+
+	return nil
 }

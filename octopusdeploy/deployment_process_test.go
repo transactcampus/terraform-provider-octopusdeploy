@@ -5,15 +5,16 @@ import (
 	"testing"
 
 	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccOctopusDeployDeploymentProcessBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
+		CheckDestroy: testAccCheckOctopusDeployDeploymentProcessDestroy,
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckOctopusDeployDeploymentProcessDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDeploymentProcessBasic(),
@@ -26,128 +27,105 @@ func TestAccOctopusDeployDeploymentProcessBasic(t *testing.T) {
 }
 
 func testAccDeploymentProcessBasic() string {
-	return `
-		resource "octopusdeploy_lifecycle" "test" {
-			name = "Test Lifecycle"
-		}
+	lifecycleLocalName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	lifecycleName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	projectGroupLocalName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	projectGroupName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	localName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	name := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	description := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
 
-		resource "octopusdeploy_project_group" "test" {
-			name = "Test Group"
-		}
+	projectID := "octopusdeploy_project." + localName + ".id"
 
-		resource "octopusdeploy_project" "test" {
-			name             = "Test Project"
-			lifecycle_id     = "${octopusdeploy_lifecycle.test.id}"
-			project_group_id = "${octopusdeploy_project_group.test.id}"
-		}
-
-		resource "octopusdeploy_deployment_process" "test" {
-			project_id = "${octopusdeploy_project.test.id}"
+	return fmt.Sprintf(testAccProjectBasic(lifecycleLocalName, lifecycleName, projectGroupLocalName, projectGroupName, localName, name, description)+"\n"+
+		`resource "octopusdeploy_deployment_process" "test" {
+			project_id = %s
 
 			step {
-				name = "Test"
-				target_roles = ["A", "B"]
-				package_requirement = "AfterPackageAcquisition"
 				condition = "Variable"
 				condition_expression = "#{run}"
-				start_trigger = "StartWithPrevious"
+				name = "Test"
+				package_requirement = "AfterPackageAcquisition"
+				start_trigger = "StartAfterPrevious"
+				target_roles = ["A", "B"]
 				window_size = "5"
-				
 
-				action {
+				run_script_action {
+					channels = ["Channels-1"]
+					// environments = ["Environments-1"]
+					// excluded_environments = ["Environments-2"]
+					is_disabled = false
+					is_required = true
 					name = "Test"
-					action_type = "Octopus.Script"
-					disabled = false
-					required = true
-					worker_pool_id = "WorkerPools-1"
-					environments = ["Environments-1"]
-					//excluded_environments = ["Environments-2"]
-					//channels = ["Channels-1"]
-					//tenant_tags = ["tag/tag"]
-					
+					run_on_server = true
+					script_file_name = "Run.ps132"
+					script_source = "Package"
+					tenant_tags = ["tag/tag"]
+
 					primary_package {
-						package_id = "MyPackage"
-						feed_id = "feeds-builtin"
 						acquisition_location = "ExecutionTarget"
+						feed_id = "feeds-builtin"
+						package_id = "MyPackage"
 					}
 
 					package {
+						acquisition_location = "NotAcquired"
+						extract_during_deployment = true
+						feed_id = "feeds-builtin"
 						name = "ThePackage"
 						package_id = "MyPackage"
-						feed_id = "feeds-builtin"
-						acquisition_location = "NotAcquired"
-						extract_during_deployment = true
 
-						property {
-							key = "WhatIsThis"
-							value = "Dunno"
+						properties = {
+							"WhatIsThis" = "Dunno"
 						}
-
 					}
 
 					package {
-						name = "ThePackage2"
-						package_id = "MyPackage2"
-						feed_id = "feeds-builtin"
 						acquisition_location = "NotAcquired"
 						extract_during_deployment = true
+						feed_id = "feeds-builtin"
+						name = "ThePackage2"
+						package_id = "MyPackage2"
 
-						property {
-							key = "WhatIsThis"
-							value = "Dunno"
+						properties = {
+							"WhatIsThis" = "Dunno"
 						}
 					}
-
-					property {
-						key = "Octopus.Action.Script.ScriptFileName"
-						value = "Run.ps132"
-					}
-
-					property {
-						key = "Octopus.Action.Script.ScriptSource"
-						value = "Package"
-					}
-
 				}
 			}
 
  			step {
- 			       name = "Step2"
- 			       start_trigger = "StartWithPrevious"
-			
- 			       action {
- 			           name = "Step2"
- 			           action_type = "Octopus.Script"
- 			           run_on_server = true
-			
- 			           property {
- 			               key = "Octopus.Action.Script.ScriptBody"
- 			               value = "Write-Host 'hi'"
- 			           }
- 			       }
-			} 
-		}
-		`
+			  name = "Step2"
+			  start_trigger = "StartWithPrevious"
+			  target_roles = ["WebServer"]
+
+			  action {
+				name = "Step2"
+				action_type = "Octopus.Script"
+				run_on_server = true
+
+				properties = {
+				  "Octopus.Action.Script.ScriptBody" = "Write-Host 'hi'"
+				}
+			  }
+			}
+		}`, projectID)
 }
 
 func testAccBuildTestAction(action string) string {
-	return fmt.Sprintf(`
-		resource "octopusdeploy_lifecycle" "test" {
-			name = "Test Lifecycle"
-		}
+	lifecycleLocalName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	lifecycleName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	projectGroupLocalName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	projectGroupName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	localName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	name := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	description := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
 
-		resource "octopusdeploy_project_group" "test" {
-			name = "Test Group"
-		}
+	projectID := "octopusdeploy_project." + localName + ".id"
 
-		resource "octopusdeploy_project" "test" {
-			name             = "Test Project"
-			lifecycle_id     = "${octopusdeploy_lifecycle.test.id}"
-			project_group_id = "${octopusdeploy_project_group.test.id}"
-		}
-
-		resource "octopusdeploy_deployment_process" "test" {
-			project_id = "${octopusdeploy_project.test.id}"
+	return fmt.Sprintf(testAccProjectBasic(lifecycleLocalName, lifecycleName, projectGroupLocalName, projectGroupName, localName, name, description)+"\n"+
+		`resource "octopusdeploy_deployment_process" "test" {
+			project_id = %s
 
 			step {
 				name = "Test"
@@ -155,8 +133,7 @@ func testAccBuildTestAction(action string) string {
 
 				%s
 			}
-		}
-		`, action)
+		}`, projectID, action)
 }
 
 func testAccCheckOctopusDeployDeploymentProcessDestroy(s *terraform.State) error {
@@ -189,7 +166,7 @@ func testAccCheckOctopusDeployDeploymentProcess() resource.TestCheckFunc {
 			return fmt.Errorf("Deployment process has %d steps instead of the expected %d", numberOfSteps, expectedNumberOfSteps)
 		}
 
-		if process.Steps[0].Actions[0].Properties["Octopus.Action.RunOnServer"] != constTrue {
+		if process.Steps[0].Actions[0].Properties["Octopus.Action.RunOnServer"] != "true" {
 			return fmt.Errorf("The RunOnServer property has not been set to true on the deployment process")
 		}
 

@@ -95,7 +95,7 @@ func validateAllSliceItemsInSlice(givenSlice, validationSlice []string) (string,
 		}
 	}
 
-	return constEmptyString, true
+	return "", true
 }
 
 func getSliceFromTerraformTypeList(inputTypeList interface{}) []string {
@@ -117,22 +117,9 @@ func logResource(name string, resource interface{}) {
 
 func getStringOrEmpty(tfAttr interface{}) string {
 	if tfAttr == nil {
-		return constEmptyString
+		return ""
 	}
 	return tfAttr.(string)
-}
-
-func getTenantedDeploymentSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeString,
-		Optional: true,
-		Default:  "Untenanted",
-		ValidateDiagFunc: validateValueFunc([]string{
-			"Untenanted",
-			"TenantedOrUntenanted",
-			"Tenanted",
-		}),
-	}
 }
 
 func destroyFeedHelper(s *terraform.State, client *octopusdeploy.Client) error {

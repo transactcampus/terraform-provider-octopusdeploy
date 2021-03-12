@@ -30,7 +30,6 @@ func TestAccUsernamePasswordBasic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testAccAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "account_type", "UsernamePassword"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
@@ -53,4 +52,11 @@ func testUsernamePasswordBasic(localName string, description string, name string
 		tenanted_deployment_participation = "%s"
 		username                          = "%s"
 	}`, localName, description, name, password, tenantedDeploymentParticipation, username)
+}
+
+func testUsernamePasswordMinimum(localName string, name string, username string) string {
+	return fmt.Sprintf(`resource "octopusdeploy_username_password_account" "%s" {
+		name     = "%s"
+		username = "%s"
+	}`, localName, name, username)
 }

@@ -11,6 +11,14 @@ import (
 )
 
 func TestAccOctopusDeployChannelBasic(t *testing.T) {
+	lifecycleLocalName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	lifecycleName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	projectGroupLocalName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	projectGroupName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	projectDescription := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	projectLocalName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	projectName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+
 	const terraformNamePrefix = "octopusdeploy_channel.ch"
 	name := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
 	description := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
@@ -18,14 +26,15 @@ func TestAccOctopusDeployChannelBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckOctopusDeployChannelDestroy,
+		CheckDestroy: testAccChannelCheckDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccChannelBasic(name, description),
+				Config: testAccChannelBasic(lifecycleLocalName, lifecycleName, projectGroupLocalName, projectGroupName, projectLocalName, projectName, projectDescription, name, description),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckOctopusDeployChannelExists(terraformNamePrefix),
 					resource.TestCheckResourceAttr(terraformNamePrefix, "name", name),
 					resource.TestCheckResourceAttr(terraformNamePrefix, "description", description),
+					resource.TestCheckResourceAttrSet(terraformNamePrefix, "project_id"),
 				),
 			},
 		},
@@ -33,16 +42,24 @@ func TestAccOctopusDeployChannelBasic(t *testing.T) {
 }
 
 func TestAccOctopusDeployChannelBasicWithUpdate(t *testing.T) {
+	lifecycleLocalName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	lifecycleName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	projectGroupLocalName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	projectGroupName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	projectDescription := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	projectLocalName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	projectName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+
 	const terraformNamePrefix = "octopusdeploy_channel.ch"
 	const channelName = "Funky Channel"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckOctopusDeployChannelDestroy,
+		CheckDestroy: testAccChannelCheckDestroy,
 		Steps: []resource.TestStep{
 			// create baseline channel
 			{
-				Config: testAccChannelBasic(channelName, "this is funky"),
+				Config: testAccChannelBasic(lifecycleLocalName, lifecycleName, projectGroupLocalName, projectGroupName, projectLocalName, projectName, projectDescription, channelName, "this is funky"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckOctopusDeployChannelExists(terraformNamePrefix),
 					resource.TestCheckResourceAttr(terraformNamePrefix, "name", channelName),
@@ -51,7 +68,7 @@ func TestAccOctopusDeployChannelBasicWithUpdate(t *testing.T) {
 			},
 			// update channel with a new description
 			{
-				Config: testAccChannelBasic(channelName, "funky it is"),
+				Config: testAccChannelBasic(lifecycleLocalName, lifecycleName, projectGroupLocalName, projectGroupName, projectLocalName, projectName, projectDescription, channelName, "funky it is"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckOctopusDeployChannelExists(terraformNamePrefix),
 					resource.TestCheckResourceAttr(terraformNamePrefix, "name", channelName),
@@ -71,7 +88,7 @@ func TestAccOctopusDeployChannelWithOneRule(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckOctopusDeployChannelDestroy,
+		CheckDestroy: testAccChannelCheckDestroy,
 		Steps: []resource.TestStep{
 			{ // create channel with one rule
 				Config: testAccChannelWithOneRule(channelName, channelDescription, versionRange, actionName),
@@ -100,7 +117,7 @@ func TestAccOctopusDeployChannelWithOneRuleWithUpdate(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckOctopusDeployChannelDestroy,
+		CheckDestroy: testAccChannelCheckDestroy,
 		Steps: []resource.TestStep{
 			{ // create baseline channel
 				Config: testAccChannelWithOneRule(channelName, channelDescription, versionRange, actionName),
@@ -134,10 +151,11 @@ func TestAccOctopusDeployChannelWithTwoRules(t *testing.T) {
 	const actionName1 = "Funky Action"
 	const versionRange2 = "2.0"
 	const actionName2 = "Action-2"
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckOctopusDeployChannelDestroy,
+		CheckDestroy: testAccChannelCheckDestroy,
 		Steps: []resource.TestStep{
 			{ // create channel with two rules
 				Config: testAccChannelWithtwoRules(channelName, channelDescription, versionRange1, actionName1, versionRange2, actionName2),
@@ -155,12 +173,8 @@ func TestAccOctopusDeployChannelWithTwoRules(t *testing.T) {
 	})
 }
 
-func testAccChannelBasic(name string, description string) string {
-	projectDescription := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
-	projectLocalName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
-	projectName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
-
-	return fmt.Sprintf(testAccProjectBasic(projectLocalName, projectName, projectDescription)+"\n"+`		
+func testAccChannelBasic(lifecycleLocalName string, lifecycleName string, projectGroupLocalName string, projectGroupName string, projectLocalName string, projectName string, projectDescription string, name string, description string) string {
+	return fmt.Sprintf(testAccProjectBasic(lifecycleLocalName, lifecycleName, projectGroupLocalName, projectGroupName, projectLocalName, projectName, projectDescription)+"\n"+`		
 		resource "octopusdeploy_channel" "ch" {
 			description = "%s"
 			name        = "%s"
@@ -190,20 +204,15 @@ func testAccChannelWithOneRule(name, description, versionRange, actionName strin
 					action_type = "Octopus.TentaclePackage"
 					name 		= "%s"
 		
-					property {
-						key 	= "Octopus.Action.Package.FeedId"
-						value 	= "feeds-builtin"
-					}
-		
-					property {
-						key 	= "Octopus.Action.Package.PackageId"
-						value 	= "#{PackageName}"
+					properties = {
+						"Octopus.Action.Package.FeedId": "feeds-builtin"
+						"Octopus.Action.Package.PackageId": "#{PackageName}"
 					}
 				}
 			}
 		}
 		
-		resource "octopusdeploy_project_channel" "ch" {
+		resource "octopusdeploy_channel" "ch" {
 		  depends_on  = ["octopusdeploy_deployment_process.deploy_step_template"]
 		  description = "%s"
 		  name        = "%s"
@@ -215,7 +224,7 @@ func testAccChannelWithOneRule(name, description, versionRange, actionName strin
 		  }
 		}
 		`,
-		actionName, name, description, versionRange, actionName,
+		actionName, description, name, actionName, versionRange,
 	)
 }
 
@@ -241,14 +250,9 @@ func testAccChannelWithtwoRules(name, description, versionRange1, actionName1, v
 					name 		= "%s"
 					action_type = "Octopus.TentaclePackage"
 		
-					property {
-						key 	= "Octopus.Action.Package.FeedId"
-						value 	= "feeds-builtin"
-					}
-		
-					property {
-						key 	= "Octopus.Action.Package.PackageId"
-						value 	= "#{PackageName}"
+					properties = {
+						"Octopus.Action.Package.FeedId": "feeds-builtin"
+						"Octopus.Action.Package.PackageId": "#{PackageName}"
 					}
 
 				}
@@ -257,14 +261,9 @@ func testAccChannelWithtwoRules(name, description, versionRange1, actionName1, v
 					name 		= "%s"
 					action_type = "Octopus.TentaclePackage"
 		
-					property {
-						key 	= "Octopus.Action.Package.FeedId"
-						value 	= "feeds-builtin"
-					}
-		
-					property {
-						key 	= "Octopus.Action.Package.PackageId"
-						value 	= "#{PackageName}"
+					properties = {
+						"Octopus.Action.Package.FeedId": "feeds-builtin"
+						"Octopus.Action.Package.PackageId": "#{PackageName}"
 					}
 
 				}
@@ -313,7 +312,7 @@ func existsHelperChannel(s *terraform.State, client *octopusdeploy.Client) error
 	return nil
 }
 
-func testAccCheckOctopusDeployChannelDestroy(s *terraform.State) error {
+func testAccChannelCheckDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*octopusdeploy.Client)
 
 	if err := destroyHelperChannel(s, client); err != nil {
@@ -326,8 +325,16 @@ func testAccCheckOctopusDeployChannelDestroy(s *terraform.State) error {
 }
 
 func destroyHelperChannel(s *terraform.State, client *octopusdeploy.Client) error {
-	for _, r := range s.RootModule().Resources {
-		if _, err := client.Channels.GetByID(r.Primary.ID); err != nil {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "octopusdeploy_channel" {
+			continue
+		}
+
+		if _, err := client.Channels.GetByID(rs.Primary.ID); err != nil {
+			apiError := err.(*octopusdeploy.APIError)
+			if apiError.StatusCode == 404 {
+				continue
+			}
 			return fmt.Errorf("error retrieving channel %s", err)
 		}
 		return fmt.Errorf("channel still exists")

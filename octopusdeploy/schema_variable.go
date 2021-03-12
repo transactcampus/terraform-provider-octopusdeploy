@@ -3,12 +3,11 @@ package octopusdeploy
 import (
 	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func expandVariable(d *schema.ResourceData) *octopusdeploy.Variable {
 	varName := d.Get("name").(string)
-	varType := d.Get(constType).(string)
+	varType := d.Get("type").(string)
 
 	var varDesc, varValue string
 	var varSensitive bool
@@ -17,14 +16,14 @@ func expandVariable(d *schema.ResourceData) *octopusdeploy.Variable {
 		varDesc = varDescInterface.(string)
 	}
 
-	if varSensitiveInterface, ok := d.GetOk(constIsSensitive); ok {
+	if varSensitiveInterface, ok := d.GetOk("is_sensitive"); ok {
 		varSensitive = varSensitiveInterface.(bool)
 	}
 
 	if varSensitive {
-		varValue = d.Get(constSensitiveValue).(string)
+		varValue = d.Get("sensitive_value").(string)
 	} else {
-		varValue = d.Get(constValue).(string)
+		varValue = d.Get("value").(string)
 	}
 
 	varScopeInterface := tfVariableScopetoODVariableScope(d)
@@ -32,7 +31,7 @@ func expandVariable(d *schema.ResourceData) *octopusdeploy.Variable {
 	newVar := octopusdeploy.NewVariable(varName, varType, varValue, varDesc, varScopeInterface, varSensitive)
 	newVar.ID = d.Id()
 
-	varPrompt, ok := d.GetOk(constPrompt)
+	varPrompt, ok := d.GetOk("prompt")
 	if ok {
 		tfPromptSettings := varPrompt.(*schema.Set)
 		if len(tfPromptSettings.List()) == 1 {
@@ -49,82 +48,63 @@ func expandVariable(d *schema.ResourceData) *octopusdeploy.Variable {
 	return newVar
 }
 
+func getVariableDataSchema() map[string]*schema.Schema {
+	dataSchema := getVariableSchema()
+	setDataSchema(&dataSchema)
+
+	return map[string]*schema.Schema{
+		"id": getDataSchemaID(),
+		"variables": {
+			Computed:    true,
+			Description: "A list of variables that match the filter(s).",
+			Elem:        &schema.Resource{Schema: dataSchema},
+			Optional:    true,
+			Type:        schema.TypeList,
+		},
+	}
+}
+
 func getVariableSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		"description": getDescriptionSchema(),
+		"encrypted_value": {
+			Computed: true,
+			Type:     schema.TypeString,
+		},
+		"is_sensitive": getIsSensitiveSchema(),
+		"key_fingerprint": {
+			Computed: true,
+			Type:     schema.TypeString,
+		},
+		"name": getNameSchema(true),
+		"pgp_key": {
+			ForceNew:  true,
+			Optional:  true,
+			Sensitive: true,
+			Type:      schema.TypeString,
+		},
 		"project_id": {
 			Required: true,
 			Type:     schema.TypeString,
 		},
-		"name": {
-			Required: true,
-			Type:     schema.TypeString,
+		"prompt": {
+			Elem:     &schema.Resource{Schema: getVariablePromptOptionsSchema()},
+			MaxItems: 1,
+			Optional: true,
+			Type:     schema.TypeSet,
 		},
-		"type": {
-			Required: true,
-			Type:     schema.TypeString,
-			ValidateDiagFunc: validateDiagFunc(validation.StringInSlice([]string{
-				"String",
-				"Sensitive",
-				"Certificate",
-				"AmazonWebServicesAccount",
-				"AzureAccount",
-			}, false)),
-		},
-		"value": {
-			ConflictsWith: []string{"sensitive_value"},
-			Optional:      true,
-			Type:          schema.TypeString,
-		},
+		"scope": getVariableScopeSchema(),
 		"sensitive_value": {
 			ConflictsWith: []string{"value"},
 			Optional:      true,
 			Sensitive:     true,
 			Type:          schema.TypeString,
 		},
-		"description": {
-			Optional: true,
-			Type:     schema.TypeString,
-		},
-		"scope": schemaVariableScope,
-		"is_sensitive": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-		"prompt": {
-			Type:     schema.TypeSet,
-			MaxItems: 1,
-			Optional: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"description": {
-						Type:     schema.TypeString,
-						Optional: true,
-					},
-					"label": {
-						Type:     schema.TypeString,
-						Optional: true,
-					},
-					"is_required": {
-						Type:     schema.TypeBool,
-						Optional: true,
-					},
-				},
-			},
-		},
-		"pgp_key": {
-			Type:      schema.TypeString,
-			Optional:  true,
-			ForceNew:  true,
-			Sensitive: true,
-		},
-		"key_fingerprint": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"encrypted_value": {
-			Type:     schema.TypeString,
-			Computed: true,
+		"type": getVariableTypeSchema(),
+		"value": {
+			ConflictsWith: []string{"sensitive_value"},
+			Optional:      true,
+			Type:          schema.TypeString,
 		},
 	}
 }

@@ -62,7 +62,7 @@ func resourceRunbookProcessRead(ctx context.Context, d *schema.ResourceData, m i
 		return nil
 	}
 
-	logResource(constRunbookProcess, m)
+	logResource("runbook_process", m)
 
 	return nil
 }

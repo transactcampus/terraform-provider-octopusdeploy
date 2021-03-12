@@ -2,11 +2,11 @@ package octopusdeploy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	uuid "github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func expandAzureSubscriptionAccount(d *schema.ResourceData) *octopusdeploy.AzureSubscriptionAccount {
@@ -72,50 +72,67 @@ func expandAzureSubscriptionAccount(d *schema.ResourceData) *octopusdeploy.Azure
 	return account
 }
 
-func flattenAzureSubscriptionAccount(ctx context.Context, d *schema.ResourceData, account *octopusdeploy.AzureSubscriptionAccount) {
-	flattenAccount(ctx, d, account)
-
-	d.Set("account_type", "AzureSubscription")
-	d.Set("azure_environment", account.AzureEnvironment)
-	d.Set("certificate", account.CertificateBytes)
-	d.Set("certificate_thumbprint", account.CertificateThumbprint)
-	d.Set("management_endpoint", account.ManagementEndpoint)
-	d.Set("storage_endpoint_suffix", account.StorageEndpointSuffix)
-	d.Set("subscription_id", account.SubscriptionID.String())
-
-	d.SetId(account.GetID())
+func getAzureSubscriptionAccountSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"azure_environment": getAzureEnvironmentSchema(),
+		"certificate": {
+			Computed:  true,
+			Optional:  true,
+			Sensitive: true,
+			Type:      schema.TypeString,
+		},
+		"certificate_thumbprint": {
+			Computed:  true,
+			Optional:  true,
+			Sensitive: true,
+			Type:      schema.TypeString,
+		},
+		"description":  getDescriptionSchema(),
+		"environments": getEnvironmentsSchema(),
+		"management_endpoint": {
+			Required:     true,
+			Type:         schema.TypeString,
+			RequiredWith: []string{"azure_environment"},
+		},
+		"name":     getNameSchema(true),
+		"space_id": getSpaceIDSchema(),
+		"storage_endpoint_suffix": {
+			Description:  "The storage endpoint suffix associated with this Azure subscription account.",
+			Required:     true,
+			Type:         schema.TypeString,
+			RequiredWith: []string{"azure_environment"},
+		},
+		"subscription_id":                   getSubscriptionIDSchema(true),
+		"tenanted_deployment_participation": getTenantedDeploymentSchema(),
+		"tenants":                           getTenantsSchema(),
+		"tenant_tags":                       getTenantTagsSchema(),
+	}
 }
 
-func getAzureSubscriptionAccountSchema() map[string]*schema.Schema {
-	schemaMap := getAccountSchema()
-	schemaMap["account_type"] = &schema.Schema{
-		Optional: true,
-		Default:  "AzureSubscription",
-		Type:     schema.TypeString,
+func setAzureSubscriptionAccount(ctx context.Context, d *schema.ResourceData, account *octopusdeploy.AzureSubscriptionAccount) error {
+	d.Set("azure_environment", account.AzureEnvironment)
+	d.Set("certificate_thumbprint", account.CertificateThumbprint)
+	d.Set("description", account.GetDescription())
+	d.Set("management_endpoint", account.ManagementEndpoint)
+	d.Set("name", account.GetName())
+	d.Set("space_id", account.GetSpaceID())
+	d.Set("storage_endpoint_suffix", account.StorageEndpointSuffix)
+	d.Set("subscription_id", account.SubscriptionID.String())
+	d.Set("tenanted_deployment_participation", account.GetTenantedDeploymentMode())
+
+	if err := d.Set("environments", account.GetEnvironmentIDs()); err != nil {
+		return fmt.Errorf("error setting environments: %s", err)
 	}
-	schemaMap["azure_environment"] = getAzureEnvironmentSchema()
-	schemaMap["certificate"] = &schema.Schema{
-		Optional:  true,
-		Sensitive: true,
-		Type:      schema.TypeString,
+
+	if err := d.Set("tenants", account.GetTenantIDs()); err != nil {
+		return fmt.Errorf("error setting tenants: %s", err)
 	}
-	schemaMap["certificate_thumbprint"] = &schema.Schema{
-		Optional:  true,
-		Sensitive: true,
-		Type:      schema.TypeString,
+
+	if err := d.Set("tenant_tags", account.TenantTags); err != nil {
+		return fmt.Errorf("error setting tenant_tags: %s", err)
 	}
-	schemaMap["management_endpoint"] = &schema.Schema{
-		Optional: true,
-		Type:     schema.TypeString,
-	}
-	schemaMap["storage_endpoint_suffix"] = &schema.Schema{
-		Optional: true,
-		Type:     schema.TypeString,
-	}
-	schemaMap["subscription_id"] = &schema.Schema{
-		Required:         true,
-		Type:             schema.TypeString,
-		ValidateDiagFunc: validateDiagFunc(validation.IsUUID),
-	}
-	return schemaMap
+
+	d.SetId(account.GetID())
+
+	return nil
 }

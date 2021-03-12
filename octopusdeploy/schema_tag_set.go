@@ -1,6 +1,9 @@
 package octopusdeploy
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -9,6 +12,19 @@ func expandTagSet(d *schema.ResourceData) *octopusdeploy.TagSet {
 	name := d.Get("name").(string)
 
 	var tagSet = octopusdeploy.NewTagSet(name)
+	tagSet.ID = d.Id()
+
+	if v, ok := d.GetOk("description"); ok {
+		tagSet.Description = v.(string)
+	}
+
+	if v, ok := d.GetOk("sort_order"); ok {
+		tagSet.SortOrder = int32(v.(int))
+	}
+
+	if v, ok := d.GetOk("space_id"); ok {
+		tagSet.SpaceID = v.(string)
+	}
 
 	if v, ok := d.GetOk("tag"); ok {
 		tags := v.([]interface{})
@@ -21,92 +37,66 @@ func expandTagSet(d *schema.ResourceData) *octopusdeploy.TagSet {
 	return tagSet
 }
 
-func expandTag(tfTag map[string]interface{}) octopusdeploy.Tag {
-	tag := octopusdeploy.Tag{
-		CanonicalTagName: tfTag["canonical_tag_name"].(string),
-		Color:            tfTag["color"].(string),
-		Description:      tfTag["description"].(string),
-		Name:             tfTag["name"].(string),
-		SortOrder:        tfTag["sort_order"].(int),
+func flattenTagSet(tagSet *octopusdeploy.TagSet) map[string]interface{} {
+	if tagSet == nil {
+		return nil
 	}
 
-	return tag
-}
-
-func getTagSchema() *schema.Schema {
-	return &schema.Schema{
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"canonical_tag_name": {
-					Optional: true,
-					Type:     schema.TypeString,
-				},
-				"color": {
-					Required: true,
-					Type:     schema.TypeString,
-				},
-				"description": {
-					Optional: true,
-					Type:     schema.TypeString,
-				},
-				"id": {
-					Computed: true,
-					Type:     schema.TypeString,
-				},
-				"name": {
-					Required: true,
-					Type:     schema.TypeString,
-				},
-				"sort_order": {
-					Optional: true,
-					Type:     schema.TypeInt,
-				},
-			},
-		},
-		Optional: true,
-		Type:     schema.TypeList,
+	return map[string]interface{}{
+		"description": tagSet.Description,
+		"id":          tagSet.GetID(),
+		"name":        tagSet.Name,
+		"sort_order":  tagSet.SortOrder,
+		"space_id":    tagSet.SpaceID,
+		"tag":         flattenTags(tagSet.Tags),
 	}
 }
 
 func getTagSetDataSchema() map[string]*schema.Schema {
+	dataSchema := getTagSetSchema()
+	setDataSchema(&dataSchema)
+
 	return map[string]*schema.Schema{
-		"ids": {
-			Elem:     &schema.Schema{Type: schema.TypeString},
-			Optional: true,
-			Type:     schema.TypeList,
-		},
-		"partial_name": {
-			Optional: true,
-			Type:     schema.TypeString,
-		},
-		"skip": {
-			Default:  0,
-			Type:     schema.TypeInt,
-			Optional: true,
-		},
-		"take": {
-			Default:  1,
-			Type:     schema.TypeInt,
-			Optional: true,
-		},
+		"ids":          getQueryIDs(),
+		"partial_name": getQueryPartialName(),
+		"skip":         getQuerySkip(),
 		"tag_sets": {
-			Computed: true,
-			Elem:     &schema.Resource{Schema: getTagSetSchema()},
-			Type:     schema.TypeList,
+			Computed:    true,
+			Description: "A list of tag sets that match the filter(s).",
+			Elem:        &schema.Resource{Schema: dataSchema},
+			Optional:    true,
+			Type:        schema.TypeList,
 		},
+		"take": getQueryTake(),
 	}
 }
 
 func getTagSetSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"id": {
-			Computed: true,
-			Type:     schema.TypeString,
+		"description": getDescriptionSchema(),
+		"id":          getIDSchema(),
+		"name":        getNameSchema(true),
+		"sort_order":  getSortOrderSchema(),
+		"space_id":    getSpaceIDSchema(),
+		"tag": {
+			Description: "A list of tags.",
+			Elem:        &schema.Resource{Schema: getTagsSchema()},
+			Optional:    true,
+			Type:        schema.TypeList,
 		},
-		"name": {
-			Required: true,
-			Type:     schema.TypeString,
-		},
-		"tag": getTagSchema(),
 	}
+}
+
+func setTagSet(ctx context.Context, d *schema.ResourceData, tagSet *octopusdeploy.TagSet) error {
+	d.Set("description", tagSet.Description)
+	d.Set("id", tagSet.GetID())
+	d.Set("name", tagSet.Name)
+	d.Set("sort_order", tagSet.SortOrder)
+	d.Set("space_id", tagSet.SpaceID)
+
+	if err := d.Set("tag", flattenTags(tagSet.Tags)); err != nil {
+		return fmt.Errorf("error setting tag: %s", err)
+	}
+
+	return nil
 }

@@ -2,16 +2,16 @@ package octopusdeploy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	uuid "github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func expandAzureServicePrincipalAccount(d *schema.ResourceData) *octopusdeploy.AzureServicePrincipalAccount {
 	name := d.Get("name").(string)
-	password := d.Get("application_password").(string)
+	password := d.Get("password").(string)
 	secretKey := octopusdeploy.NewSensitiveValue(password)
 
 	applicationID, _ := uuid.Parse(d.Get("application_id").(string))
@@ -60,60 +60,50 @@ func expandAzureServicePrincipalAccount(d *schema.ResourceData) *octopusdeploy.A
 	return account
 }
 
-func flattenAzureServicePrincipalAccount(ctx context.Context, d *schema.ResourceData, account *octopusdeploy.AzureServicePrincipalAccount) {
-	flattenAccount(ctx, d, account)
-
-	d.Set("account_type", "AzureServicePrincipal")
-	d.Set("application_id", account.ApplicationID.String())
-
-	if account.ApplicationPassword != nil {
-		d.Set("application_password", account.ApplicationPassword.NewValue)
+func getAzureServicePrincipalAccountSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"application_id":                    getApplicationIDSchema(true),
+		"authentication_endpoint":           getAuthenticationEndpointSchema(false),
+		"azure_environment":                 getAzureEnvironmentSchema(),
+		"description":                       getDescriptionSchema(),
+		"environments":                      getEnvironmentsSchema(),
+		"id":                                getIDSchema(),
+		"name":                              getNameSchema(true),
+		"password":                          getPasswordSchema(true),
+		"resource_manager_endpoint":         getResourceManagerEndpointSchema(false),
+		"space_id":                          getSpaceIDSchema(),
+		"subscription_id":                   getSubscriptionIDSchema(true),
+		"tenanted_deployment_participation": getTenantedDeploymentSchema(),
+		"tenants":                           getTenantsSchema(),
+		"tenant_id":                         getTenantIDSchema(true),
+		"tenant_tags":                       getTenantTagsSchema(),
 	}
-
-	d.Set("authentication_endpoint", account.AuthenticationEndpoint)
-	d.Set("azure_environment", account.AzureEnvironment)
-	d.Set("resource_manager_endpoint", account.ResourceManagerEndpoint)
-	d.Set("subscription_id", account.SubscriptionID.String())
-	d.Set("tenant_id", account.TenantID.String())
-
-	d.SetId(account.GetID())
 }
 
-func getAzureServicePrincipalAccountSchema() map[string]*schema.Schema {
-	schemaMap := getAccountSchema()
-	schemaMap["account_type"] = &schema.Schema{
-		Optional: true,
-		Default:  "AzureServicePrincipal",
-		Type:     schema.TypeString,
+func setAzureServicePrincipalAccount(ctx context.Context, d *schema.ResourceData, account *octopusdeploy.AzureServicePrincipalAccount) error {
+	d.Set("application_id", account.ApplicationID.String())
+	d.Set("authentication_endpoint", account.AuthenticationEndpoint)
+	d.Set("azure_environment", account.AzureEnvironment)
+	d.Set("description", account.GetDescription())
+	d.Set("id", account.GetID())
+	d.Set("name", account.GetName())
+	d.Set("resource_manager_endpoint", account.ResourceManagerEndpoint)
+	d.Set("space_id", account.GetSpaceID())
+	d.Set("subscription_id", account.SubscriptionID.String())
+	d.Set("tenanted_deployment_participation", account.GetTenantedDeploymentMode())
+	d.Set("tenant_id", account.TenantID.String())
+
+	if err := d.Set("environments", account.GetEnvironmentIDs()); err != nil {
+		return fmt.Errorf("error setting environments: %s", err)
 	}
-	schemaMap["application_id"] = &schema.Schema{
-		Required:         true,
-		Type:             schema.TypeString,
-		ValidateDiagFunc: validateDiagFunc(validation.IsUUID),
+
+	if err := d.Set("tenants", account.GetTenantIDs()); err != nil {
+		return fmt.Errorf("error setting tenants: %s", err)
 	}
-	schemaMap["application_password"] = &schema.Schema{
-		Required:  true,
-		Sensitive: true,
-		Type:      schema.TypeString,
+
+	if err := d.Set("tenant_tags", account.TenantTags); err != nil {
+		return fmt.Errorf("error setting tenant_tags: %s", err)
 	}
-	schemaMap["authentication_endpoint"] = &schema.Schema{
-		Optional: true,
-		Type:     schema.TypeString,
-	}
-	schemaMap["azure_environment"] = getAzureEnvironmentSchema()
-	schemaMap["resource_manager_endpoint"] = &schema.Schema{
-		Optional: true,
-		Type:     schema.TypeString,
-	}
-	schemaMap["subscription_id"] = &schema.Schema{
-		Required:         true,
-		Type:             schema.TypeString,
-		ValidateDiagFunc: validateDiagFunc(validation.IsUUID),
-	}
-	schemaMap["tenant_id"] = &schema.Schema{
-		Required:         true,
-		Type:             schema.TypeString,
-		ValidateDiagFunc: validateDiagFunc(validation.IsUUID),
-	}
-	return schemaMap
+
+	return nil
 }

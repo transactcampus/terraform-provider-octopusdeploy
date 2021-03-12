@@ -11,7 +11,9 @@ import (
 )
 
 func TestAccDeploymentTargetImportBasic(t *testing.T) {
-	resourceName := "octopusdeploy_deployment_target.foomac"
+	localName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	resourceName := "octopusdeploy_deployment_target." + localName
+
 	name := acctest.RandStringFromCharSet(16, acctest.CharSetAlpha)
 
 	resource.Test(t, resource.TestCase{
@@ -20,7 +22,7 @@ func TestAccDeploymentTargetImportBasic(t *testing.T) {
 		Providers:    testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDeploymentTargetBasic(name),
+				Config: testAccDeploymentTargetBasic(localName, name),
 			},
 			{
 				ResourceName:      resourceName,
@@ -32,7 +34,9 @@ func TestAccDeploymentTargetImportBasic(t *testing.T) {
 }
 
 func TestAccDeploymentTargetBasic(t *testing.T) {
-	resourceName := "octopusdeploy_deployment_target.foomac"
+	localName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	resourceName := "octopusdeploy_deployment_target." + localName
+
 	name := acctest.RandStringFromCharSet(16, acctest.CharSetAlpha)
 
 	resource.Test(t, resource.TestCase{
@@ -41,7 +45,7 @@ func TestAccDeploymentTargetBasic(t *testing.T) {
 		Providers:    testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDeploymentTargetBasic(name),
+				Config: testAccDeploymentTargetBasic(localName, name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccDeploymentTargetExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "environments.#", "1"),
@@ -64,21 +68,42 @@ func TestAccDeploymentTargetBasic(t *testing.T) {
 	})
 }
 
-func testAccDeploymentTargetBasic(name string) string {
-	return fmt.Sprintf(`data "octopusdeploy_machine_policy" "default" {
-		name = "Default Machine Policy"
-	}
+func TestAccDeploymentTargetBasic2(t *testing.T) {
+	localName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	resourceName := "octopusdeploy_deployment_target." + localName
 
-	resource "octopusdeploy_environment" "tf_test_env" {
-		description        = "Environment for testing Octopus DeploymentTargets"
-		name               = "OctopusTestDeploymentTargetBasic"
-		use_guided_failure = "false"
-	}
+	name := acctest.RandStringFromCharSet(16, acctest.CharSetAlpha)
 
-	resource "octopusdeploy_deployment_target" "foomac" {
-		environments                      = ["${octopusdeploy_environment.tf_test_env.id}"]
+	resource.Test(t, resource.TestCase{
+		CheckDestroy: testAccDeploymentTargetCheckDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDeploymentTargetBasic2(localName, name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccDeploymentTargetExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func testAccDeploymentTargetBasic(localName string, name string) string {
+	allowDynamicInfrastructure := false
+	environmentDescription := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	environmentLocalName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	environmentName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	useGuidedFailure := false
+
+	return fmt.Sprintf(`data "octopusdeploy_machine_policies" "default" {
+		partial_name = "Default Machine Policy"
+	}`+"\n"+
+		testEnvironmentBasic(environmentLocalName, environmentName, environmentDescription, allowDynamicInfrastructure, useGuidedFailure)+"\n"+`
+	resource "octopusdeploy_deployment_target" "%s" {
+		environments                      = ["${octopusdeploy_environment.%s.id}"]
 		is_disabled                       = true
-		machine_policy_id                 = "${data.octopusdeploy_machine_policy.default.id}"
+		machine_policy_id                 = "${data.octopusdeploy_machine_policies.default.machine_policies[0].id}"
 		name                              = "%s"
 		roles                             = ["Prod"]
 		tenanted_deployment_participation = "Untenanted"
@@ -88,7 +113,28 @@ func testAccDeploymentTargetBasic(name string) string {
 		  thumbprint          = ""
 		  uri                 = ""
 		}
-	  }`, name)
+	  }`, localName, environmentLocalName, name)
+}
+
+func testAccDeploymentTargetBasic2(localName string, name string) string {
+	allowDynamicInfrastructure := false
+	environmentDescription := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	environmentLocalName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	environmentName := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
+	useGuidedFailure := false
+
+	return fmt.Sprintf(`data "octopusdeploy_machine_policies" "default" {
+		partial_name = "Default Machine Policy"
+	}`+"\n"+
+		testEnvironmentBasic(environmentLocalName, environmentName, environmentDescription, allowDynamicInfrastructure, useGuidedFailure)+"\n"+`
+		resource "octopusdeploy_deployment_target" "%s" {
+			environments                    = [octopusdeploy_environment.%s.id]
+			name                            = "%s"
+			roles                           = ["INFRA"]
+			endpoint {
+			  communication_style = "None"
+			}
+		  }`, localName, environmentLocalName, name)
 }
 
 func testAccDeploymentTargetExists(resourceName string) resource.TestCheckFunc {

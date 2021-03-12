@@ -11,8 +11,10 @@ import (
 
 func dataSourceAccounts() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceAccountsRead,
-		Schema:      getAccountDataSchema(),
+		DeprecationMessage: "Use an account-specific resource instead (i.e. octopusdeploy_aws_account, octopusdeploy_azure_service_principal, octopusdeploy_azure_subscription_account, octopusdeploy_ssh_key_account, octopusdeploy_token_account, octopusdeploy_username_password_account).",
+		Description:        "Provides information about existing accounts.",
+		ReadContext:        dataSourceAccountsRead,
+		Schema:             getAccountResourceDataSchema(),
 	}
 }
 
@@ -38,37 +40,7 @@ func dataSourceAccountsRead(ctx context.Context, d *schema.ResourceData, m inter
 			return diag.FromErr(err)
 		}
 
-		flattenedAccount := map[string]interface{}{
-			"access_key":                        accountResource.AccessKey,
-			"account_type":                      accountResource.AccountType,
-			"authentication_endpoint":           accountResource.AuthenticationEndpoint,
-			"azure_environment":                 accountResource.AzureEnvironment,
-			"certificate_thumbprint":            accountResource.CertificateThumbprint,
-			"description":                       accountResource.Description,
-			"environments":                      accountResource.EnvironmentIDs,
-			"id":                                accountResource.GetID(),
-			"name":                              accountResource.Name,
-			"space_id":                          accountResource.SpaceID,
-			"resource_management_endpoint":      accountResource.ResourceManagerEndpoint,
-			"tenant_tags":                       accountResource.TenantTags,
-			"tenanted_deployment_participation": accountResource.TenantedDeploymentMode,
-			"tenants":                           accountResource.TenantIDs,
-			"username":                          accountResource.Username,
-		}
-
-		if applicationID := accountResource.ApplicationID; applicationID != nil {
-			flattenedAccount["application_id"] = applicationID.String()
-		}
-
-		if subscriptionID := accountResource.SubscriptionID; subscriptionID != nil {
-			flattenedAccount["subscription_id"] = subscriptionID.String()
-		}
-
-		if tenantID := accountResource.TenantID; tenantID != nil {
-			flattenedAccount["tenant_id"] = tenantID.String()
-		}
-
-		flattenedAccounts = append(flattenedAccounts, flattenedAccount)
+		flattenedAccounts = append(flattenedAccounts, flattenAccountResource(accountResource))
 	}
 
 	d.Set("accounts", flattenedAccounts)

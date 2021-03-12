@@ -11,6 +11,7 @@ import (
 
 func dataSourceLifecycles() *schema.Resource {
 	return &schema.Resource{
+		Description: "Provides information about existing lifecycles.",
 		ReadContext: dataSourceLifecyclesRead,
 		Schema:      getLifecycleDataSchema(),
 	}
@@ -32,7 +33,7 @@ func dataSourceLifecyclesRead(ctx context.Context, d *schema.ResourceData, m int
 
 	flattenedLifecycles := []interface{}{}
 	for _, lifecycle := range lifecycles.Items {
-		flattenedLifecycles = append(flattenedLifecycles, FlattenLifecycle(lifecycle))
+		flattenedLifecycles = append(flattenedLifecycles, flattenLifecycle(lifecycle))
 	}
 
 	d.Set("lifecycles", flattenedLifecycles)

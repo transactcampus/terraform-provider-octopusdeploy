@@ -2,6 +2,7 @@ package octopusdeploy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -41,26 +42,39 @@ func expandTokenAccount(d *schema.ResourceData) *octopusdeploy.TokenAccount {
 	return account
 }
 
-func flattenTokenAccount(ctx context.Context, d *schema.ResourceData, account *octopusdeploy.TokenAccount) {
-	flattenAccount(ctx, d, account)
-
-	d.Set("account_type", "Token")
-	d.Set("token", account.Token.NewValue)
-
-	d.SetId(account.GetID())
+func getTokenAccountSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"description":                       getDescriptionSchema(),
+		"environments":                      getEnvironmentsSchema(),
+		"id":                                getIDSchema(),
+		"name":                              getNameSchema(true),
+		"space_id":                          getSpaceIDSchema(),
+		"tenanted_deployment_participation": getTenantedDeploymentSchema(),
+		"tenants":                           getTenantsSchema(),
+		"tenant_tags":                       getTenantTagsSchema(),
+		"token":                             getTokenSchema(true),
+	}
 }
 
-func getTokenAccountSchema() map[string]*schema.Schema {
-	schemaMap := getAccountSchema()
-	schemaMap["account_type"] = &schema.Schema{
-		Optional: true,
-		Default:  "Token",
-		Type:     schema.TypeString,
+func setTokenAccount(ctx context.Context, d *schema.ResourceData, account *octopusdeploy.TokenAccount) error {
+	d.Set("description", account.GetDescription())
+
+	if err := d.Set("environments", account.GetEnvironmentIDs()); err != nil {
+		return fmt.Errorf("error setting environments: %s", err)
 	}
-	schemaMap["token"] = &schema.Schema{
-		Required:  true,
-		Sensitive: true,
-		Type:      schema.TypeString,
+
+	d.Set("id", account.GetID())
+	d.Set("name", account.GetName())
+	d.Set("space_id", account.GetSpaceID())
+	d.Set("tenanted_deployment_participation", account.GetTenantedDeploymentMode())
+
+	if err := d.Set("tenants", account.GetTenantIDs()); err != nil {
+		return fmt.Errorf("error setting tenants: %s", err)
 	}
-	return schemaMap
+
+	if err := d.Set("tenant_tags", account.TenantTags); err != nil {
+		return fmt.Errorf("error setting tenant_tags: %s", err)
+	}
+
+	return nil
 }

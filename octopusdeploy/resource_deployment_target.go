@@ -2,6 +2,7 @@ package octopusdeploy
 
 import (
 	"context"
+	"log"
 
 	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -23,17 +24,23 @@ func resourceDeploymentTargetCreate(ctx context.Context, d *schema.ResourceData,
 	deploymentTarget := expandDeploymentTarget(d)
 	deploymentTarget.Status = "Unknown"
 
+	log.Printf("[INFO] creating deployment target: %#v", deploymentTarget)
+
 	client := m.(*octopusdeploy.Client)
 	createdDeploymentTarget, err := client.Machines.Add(deploymentTarget)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	flattenDeploymentTarget(ctx, d, createdDeploymentTarget)
+	setDeploymentTarget(ctx, d, createdDeploymentTarget)
+
+	log.Printf("[INFO] deployment target created (%s)", d.Id())
 	return nil
 }
 
 func resourceDeploymentTargetDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Printf("[INFO] deleting deployment target (%s)", d.Id())
+
 	client := m.(*octopusdeploy.Client)
 	err := client.Machines.DeleteByID(d.Id())
 	if err != nil {
@@ -41,21 +48,29 @@ func resourceDeploymentTargetDelete(ctx context.Context, d *schema.ResourceData,
 	}
 
 	d.SetId("")
+
+	log.Printf("[INFO] deployment target deleted")
 	return nil
 }
 
 func resourceDeploymentTargetRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Printf("[INFO] reading deployment target (%s)", d.Id())
+
 	client := m.(*octopusdeploy.Client)
 	deploymentTarget, err := client.Machines.GetByID(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	flattenDeploymentTarget(ctx, d, deploymentTarget)
+	setDeploymentTarget(ctx, d, deploymentTarget)
+
+	log.Printf("[INFO] deployment target read (%s)", d.Id())
 	return nil
 }
 
 func resourceDeploymentTargetUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Printf("[INFO] updating deployment target (%s)", d.Id())
+
 	deploymentTarget := expandDeploymentTarget(d)
 
 	client := m.(*octopusdeploy.Client)
@@ -64,6 +79,8 @@ func resourceDeploymentTargetUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	flattenDeploymentTarget(ctx, d, updatedDeploymentTarget)
+	setDeploymentTarget(ctx, d, updatedDeploymentTarget)
+
+	log.Printf("[INFO] deployment target updated (%s)", d.Id())
 	return nil
 }

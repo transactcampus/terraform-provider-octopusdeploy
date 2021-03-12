@@ -3,6 +3,7 @@ package octopusdeploy
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"sync"
 
@@ -39,33 +40,35 @@ func resourceVariableImport(d *schema.ResourceData, m interface{}) ([]*schema.Re
 }
 
 func resourceVariableRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Printf("[INFO] reading variable (%s)", d.Id())
+
 	id := d.Id()
 	projectID := d.Get("project_id").(string)
 
 	client := m.(*octopusdeploy.Client)
 	variable, err := client.Variables.GetByID(projectID, id)
 	if err != nil {
+		apiError := err.(*octopusdeploy.APIError)
+		if apiError.StatusCode == 404 {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(err)
 	}
-	if variable == nil {
-		d.SetId("")
-		return nil
-	}
-
-	logResource(constVariable, m)
 
 	d.Set("name", variable.Name)
 	d.Set("type", variable.Type)
 
-	isSensitive := d.Get(constIsSensitive).(bool)
+	isSensitive := d.Get("is_sensitive").(bool)
 	if isSensitive {
-		d.Set(constValue, nil)
+		d.Set("value", nil)
 	} else {
-		d.Set(constValue, variable.Value)
+		d.Set("value", variable.Value)
 	}
 
 	d.Set("description", variable.Description)
 
+	log.Printf("[INFO] variable read (%s)", d.Id())
 	return nil
 }
 
@@ -78,6 +81,8 @@ func resourceVariableCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 	projID := d.Get("project_id").(string)
 	newVariable := expandVariable(d)
+
+	log.Printf("[INFO] creating variable: %#v", newVariable)
 
 	client := m.(*octopusdeploy.Client)
 	tfVar, err := client.Variables.AddSingle(projID, newVariable)
@@ -93,6 +98,7 @@ func resourceVariableCreate(ctx context.Context, d *schema.ResourceData, m inter
 			}
 			if scopeMatches {
 				d.SetId(v.ID)
+				log.Printf("[INFO] variable created (%s)", d.Id())
 				return nil
 			}
 		}
@@ -103,6 +109,8 @@ func resourceVariableCreate(ctx context.Context, d *schema.ResourceData, m inter
 }
 
 func resourceVariableUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Printf("[INFO] updating variable (%s)", d.Id())
+
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -124,6 +132,7 @@ func resourceVariableUpdate(ctx context.Context, d *schema.ResourceData, m inter
 			scopeMatches, _, _ := client.Variables.MatchesScope(v.Scope, tfVar.Scope)
 			if scopeMatches {
 				d.SetId(v.ID)
+				log.Printf("[INFO] variable updated (%s)", d.Id())
 				return nil
 			}
 		}
@@ -134,6 +143,8 @@ func resourceVariableUpdate(ctx context.Context, d *schema.ResourceData, m inter
 }
 
 func resourceVariableDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Printf("[INFO] deleting variable (%s)", d.Id())
+
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -146,6 +157,8 @@ func resourceVariableDelete(ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	d.SetId("")
+
+	log.Printf("[INFO] variable deleted")
 	return nil
 }
 
@@ -153,8 +166,8 @@ func resourceVariableDelete(ctx context.Context, d *schema.ResourceData, m inter
 // schema has been parsed, which as far as I can tell we can't do in a normal validation
 // function.
 func validateVariable(d *schema.ResourceData) error {
-	tfSensitive := d.Get(constIsSensitive).(bool)
-	tfType := d.Get(constType).(string)
+	tfSensitive := d.Get("is_sensitive").(bool)
+	tfType := d.Get("type").(string)
 
 	if tfSensitive && tfType != "Sensitive" {
 		return fmt.Errorf("when is_sensitive is set to true, type needs to be 'Sensitive'")

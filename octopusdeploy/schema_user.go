@@ -2,6 +2,7 @@ package octopusdeploy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -41,91 +42,41 @@ func expandUser(d *schema.ResourceData) *octopusdeploy.User {
 	return user
 }
 
-func expandClaims(claims []interface{}) map[string]octopusdeploy.IdentityClaim {
-	expandedClaims := make(map[string]octopusdeploy.IdentityClaim, len(claims))
-	for _, claim := range claims {
-		claimMap := claim.(map[string]interface{})
-		name := claimMap["name"].(string)
-		identityClaim := octopusdeploy.IdentityClaim{
-			IsIdentifyingClaim: claimMap["is_identifying_claim"].(bool),
-			Value:              claimMap["value"].(string),
-		}
-		expandedClaims[name] = identityClaim
-	}
-	return expandedClaims
-}
-
-func expandIdentities(identities []interface{}) []octopusdeploy.Identity {
-	expandedIdentities := make([]octopusdeploy.Identity, 0, len(identities))
-	for _, identity := range identities {
-		if identity != nil {
-			rawIdentity := identity.(map[string]interface{})
-
-			identityProviderName := ""
-			if rawIdentity["provider"] != nil {
-				identityProviderName = rawIdentity["provider"].(string)
-			}
-
-			i := octopusdeploy.Identity{
-				IdentityProviderName: identityProviderName,
-				Claims:               expandClaims(rawIdentity["claim"].(*schema.Set).List()),
-			}
-			expandedIdentities = append(expandedIdentities, i)
-		}
-	}
-	return expandedIdentities
-}
-
-func flattenIdentityClaims(identityClaims map[string]octopusdeploy.IdentityClaim) []interface{} {
-	if identityClaims == nil {
+func flattenUser(user *octopusdeploy.User) map[string]interface{} {
+	if user == nil {
 		return nil
 	}
 
-	flattenedIdentityClaims := []interface{}{}
-	for key, identityClaim := range identityClaims {
-		rawIdentityClaim := map[string]interface{}{
-			"is_identifying_claim": identityClaim.IsIdentifyingClaim,
-			"name":                 key,
-			"value":                identityClaim.Value,
-		}
-
-		flattenedIdentityClaims = append(flattenedIdentityClaims, rawIdentityClaim)
+	return map[string]interface{}{
+		"can_password_be_edited": user.CanPasswordBeEdited,
+		"display_name":           user.DisplayName,
+		"email_address":          user.EmailAddress,
+		"id":                     user.GetID(),
+		"identity":               flattenIdentities(user.Identities),
+		"is_active":              user.IsActive,
+		"is_service":             user.IsService,
+		"username":               user.Username,
 	}
-
-	return flattenedIdentityClaims
 }
 
-func flattenIdentities(identities []octopusdeploy.Identity) []interface{} {
-	if identities == nil {
-		return nil
+func getUserDataSchema() map[string]*schema.Schema {
+	dataSchema := getUserSchema()
+	setDataSchema(&dataSchema)
+
+	return map[string]*schema.Schema{
+		"filter": getQueryFilter(),
+		"id":     getDataSchemaID(),
+		"ids":    getQueryIDs(),
+		"skip":   getQuerySkip(),
+		"take":   getQueryTake(),
+		"users": {
+			Computed:    true,
+			Description: "A list of users that match the filter(s).",
+			Elem:        &schema.Resource{Schema: dataSchema},
+			Optional:    true,
+			Type:        schema.TypeList,
+		},
 	}
-
-	flattenedIdentities := make([]interface{}, len(identities))
-	for i, identity := range identities {
-		rawIdentity := map[string]interface{}{
-			"provider": identity.IdentityProviderName,
-		}
-		if identity.Claims != nil {
-			rawIdentity["claim"] = flattenIdentityClaims(identity.Claims)
-		}
-
-		flattenedIdentities[i] = rawIdentity
-	}
-
-	return flattenedIdentities
-}
-
-func flattenUser(ctx context.Context, d *schema.ResourceData, user *octopusdeploy.User) {
-	d.Set("can_password_be_edited", user.CanPasswordBeEdited)
-	d.Set("display_name", user.DisplayName)
-	d.Set("email_address", user.EmailAddress)
-	d.Set("identity", flattenIdentities(user.Identities))
-	d.Set("is_active", user.IsActive)
-	d.Set("is_requestor", user.IsRequestor)
-	d.Set("is_service", user.IsService)
-	d.Set("username", user.Username)
-
-	d.SetId(user.GetID())
 }
 
 func getUserSchema() map[string]*schema.Schema {
@@ -134,45 +85,13 @@ func getUserSchema() map[string]*schema.Schema {
 			Computed: true,
 			Type:     schema.TypeBool,
 		},
-		"display_name": {
-			Required: true,
-			Type:     schema.TypeString,
-		},
-		"email_address": {
-			Optional: true,
-			Type:     schema.TypeString,
-		},
+		"display_name":  getDisplayNameSchema(true),
+		"email_address": getEmailAddressSchema(false),
+		"id":            getIDSchema(),
 		"identity": {
 			Optional: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"provider": {
-						Optional: true,
-						Type:     schema.TypeString,
-					},
-					"claim": {
-						Optional: true,
-						Elem: &schema.Resource{
-							Schema: map[string]*schema.Schema{
-								"name": {
-									Required: true,
-									Type:     schema.TypeString,
-								},
-								"is_identifying_claim": {
-									Required: true,
-									Type:     schema.TypeBool,
-								},
-								"value": {
-									Required: true,
-									Type:     schema.TypeString,
-								},
-							},
-						},
-						Type: schema.TypeSet,
-					},
-				},
-			},
-			Type: schema.TypeSet,
+			Elem:     &schema.Resource{Schema: getIdentitySchema()},
+			Type:     schema.TypeSet,
 		},
 		"is_active": {
 			Optional: true,
@@ -186,15 +105,27 @@ func getUserSchema() map[string]*schema.Schema {
 			Optional: true,
 			Type:     schema.TypeBool,
 		},
-		"username": {
-			Required:  true,
-			Sensitive: true,
-			Type:      schema.TypeString,
-		},
-		"password": {
-			Optional:  true,
-			Sensitive: true,
-			Type:      schema.TypeString,
-		},
+		"username": getUsernameSchema(true),
+		"password": getPasswordSchema(false),
 	}
+}
+
+func setUser(ctx context.Context, d *schema.ResourceData, user *octopusdeploy.User) error {
+	d.Set("can_password_be_edited", user.CanPasswordBeEdited)
+	d.Set("display_name", user.DisplayName)
+	d.Set("email_address", user.EmailAddress)
+	d.Set("id", user.GetID())
+
+	if err := d.Set("identity", flattenIdentities(user.Identities)); err != nil {
+		return fmt.Errorf("error setting identity: %s", err)
+	}
+
+	d.Set("is_active", user.IsActive)
+	d.Set("is_requestor", user.IsRequestor)
+	d.Set("is_service", user.IsService)
+	d.Set("username", user.Username)
+
+	d.SetId(user.GetID())
+
+	return nil
 }

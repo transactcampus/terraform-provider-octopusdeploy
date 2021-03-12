@@ -26,10 +26,15 @@ func TestAccLifecycleBasic(t *testing.T) {
 					testAccCheckLifecycleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttrSet(resourceName, "phases"),
-					resource.TestCheckResourceAttrSet(resourceName, "release_retention_policy"),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.0.quantity_to_keep", "30"),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.0.should_keep_forever", "false"),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.0.unit", "Days"),
 					resource.TestCheckResourceAttrSet(resourceName, "space_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "tentacle_retention_policy"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.0.quantity_to_keep", "30"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.0.should_keep_forever", "false"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.0.unit", "Days"),
 				),
 				Config: testAccLifecycleBasic(localName, name),
 			},
@@ -55,7 +60,15 @@ func TestAccLifecycleWithUpdate(t *testing.T) {
 					testAccCheckLifecycleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.0.quantity_to_keep", "30"),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.0.should_keep_forever", "false"),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.0.unit", "Days"),
 					resource.TestCheckResourceAttrSet(resourceName, "space_id"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.0.quantity_to_keep", "30"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.0.should_keep_forever", "false"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.0.unit", "Days"),
 				),
 				Config: testAccLifecycleBasic(localName, name),
 			},
@@ -66,7 +79,15 @@ func TestAccLifecycleWithUpdate(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.0.quantity_to_keep", "30"),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.0.should_keep_forever", "false"),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.0.unit", "Days"),
 					resource.TestCheckResourceAttrSet(resourceName, "space_id"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.0.quantity_to_keep", "30"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.0.should_keep_forever", "false"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.0.unit", "Days"),
 				),
 				Config: testAccLifecycleWithDescription(localName, name, description),
 			},
@@ -77,7 +98,15 @@ func TestAccLifecycleWithUpdate(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.0.quantity_to_keep", "30"),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.0.should_keep_forever", "false"),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.0.unit", "Days"),
 					resource.TestCheckResourceAttrSet(resourceName, "space_id"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.0.quantity_to_keep", "30"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.0.should_keep_forever", "false"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.0.unit", "Days"),
 				),
 				Config: testAccLifecycleBasic(localName, name),
 			},
@@ -101,7 +130,15 @@ func TestAccLifecycleComplex(t *testing.T) {
 					testAccCheckLifecycleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.0.quantity_to_keep", "2"),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.0.should_keep_forever", "false"),
+					resource.TestCheckResourceAttr(resourceName, "release_retention_policy.0.unit", "Days"),
 					resource.TestCheckResourceAttrSet(resourceName, "space_id"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.0.quantity_to_keep", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.0.should_keep_forever", "false"),
+					resource.TestCheckResourceAttr(resourceName, "tentacle_retention_policy.0.unit", "Days"),
 					testAccCheckLifecyclePhaseCount(name, 2),
 				),
 				Config: testAccLifecycleComplex(localName, name),
@@ -158,21 +195,6 @@ func testAccLifecycleComplex(localName string, name string) string {
 	}`, localName, name, environment2LocalName, environment3LocalName)
 }
 
-func testAccLifecycleCheckDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*octopusdeploy.Client)
-	for _, rs := range s.RootModule().Resources {
-		lifecycleID := rs.Primary.ID
-		space, err := client.Lifecycles.GetByID(lifecycleID)
-		if err == nil {
-			if space != nil {
-				return fmt.Errorf("lifecycle (%s) still exists", rs.Primary.ID)
-			}
-		}
-	}
-
-	return nil
-}
-
 func testAccCheckLifecycleExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*octopusdeploy.Client)
@@ -202,7 +224,15 @@ func testAccCheckLifecyclePhaseCount(name string, expected int) resource.TestChe
 }
 func destroyHelperLifecycle(s *terraform.State, client *octopusdeploy.Client) error {
 	for _, r := range s.RootModule().Resources {
+		if r.Type != "octopusdeploy_lifecycle" {
+			continue
+		}
+
 		if _, err := client.Lifecycles.GetByID(r.Primary.ID); err != nil {
+			apiError := err.(*octopusdeploy.APIError)
+			if apiError.StatusCode == 404 {
+				continue
+			}
 			return fmt.Errorf("error retrieving lifecycle %s", err)
 		}
 		return fmt.Errorf("lifecycle still exists")
@@ -221,15 +251,16 @@ func existsHelperLifecycle(s *terraform.State, client *octopusdeploy.Client) err
 	return nil
 }
 
-func testLifecycleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*octopusdeploy.Client)
+func testAccLifecycleCheckDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-		lifecycleID := rs.Primary.ID
-		lifecycle, err := client.Lifecycles.GetByID(lifecycleID)
-		if err == nil {
-			if lifecycle != nil {
-				return fmt.Errorf("lifecycle (%s) still exists", rs.Primary.ID)
-			}
+		if rs.Type != "octopusdeploy_lifecycle" {
+			continue
+		}
+
+		client := testAccProvider.Meta().(*octopusdeploy.Client)
+		lifecycle, err := client.Lifecycles.GetByID(rs.Primary.ID)
+		if err == nil && lifecycle != nil {
+			return fmt.Errorf("lifecycle (%s) still exists", rs.Primary.ID)
 		}
 	}
 

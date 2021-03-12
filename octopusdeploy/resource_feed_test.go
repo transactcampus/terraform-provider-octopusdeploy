@@ -17,9 +17,9 @@ func TestAccOctopusDeployFeedBasic(t *testing.T) {
 	name := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
 	const feedType = "NuGet"
 	const feedURI = "http://test.com"
-	const enhancedMode = constTrue
-	const feedUsername = constUsername
-	const feedPassword = constPassword
+	const enhancedMode = "true"
+	const feedUsername = "username"
+	const feedPassword = "password"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -27,29 +27,29 @@ func TestAccOctopusDeployFeedBasic(t *testing.T) {
 		CheckDestroy: testFeedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testFeedtBasic(localName, name, feedType, feedURI, feedUsername, feedPassword, enhancedMode),
+				Config: testFeedBasic(localName, name, feedType, feedURI, feedUsername, feedPassword, enhancedMode),
 				Check: resource.ComposeTestCheckFunc(
 					testFeedExists(prefix),
 					resource.TestCheckResourceAttr(prefix, "name", name),
-					resource.TestCheckResourceAttr(prefix, constFeedType, feedType),
-					resource.TestCheckResourceAttr(prefix, constFeedURI, feedURI),
-					resource.TestCheckResourceAttr(prefix, constUsername, feedUsername),
-					resource.TestCheckResourceAttr(prefix, constPassword, feedPassword),
-					resource.TestCheckResourceAttr(prefix, constEnhancedMode, enhancedMode),
+					resource.TestCheckResourceAttr(prefix, "feed_type", feedType),
+					resource.TestCheckResourceAttr(prefix, "feed_uri", feedURI),
+					resource.TestCheckResourceAttr(prefix, "username", feedUsername),
+					resource.TestCheckResourceAttr(prefix, "password", feedPassword),
+					resource.TestCheckResourceAttr(prefix, "is_enhanced_mode", enhancedMode),
 				),
 			},
 		},
 	})
 }
 
-func testFeedtBasic(localName string, name string, feedType string, feedURI string, feedUsername string, feedPassword string, enhancedMode string) string {
+func testFeedBasic(localName string, name string, feedType string, feedURI string, feedUsername string, feedPassword string, enhancedMode string) string {
 	return fmt.Sprintf(`resource "octopusdeploy_feed" "%s" {
-		name          = "%s"
-		feed_type     = "%s"
-		feed_uri      = "%s"
-		username      = "%s"
-		password      = "%s"
-		enhanced_mode = "%s"
+		name             = "%s"
+		feed_type        = "%s"
+		feed_uri         = "%s"
+		username         = "%s"
+		password         = "%s"
+		is_enhanced_mode = "%s"
 	}`, localName, name, feedType, feedURI, feedUsername, feedPassword, enhancedMode)
 }
 

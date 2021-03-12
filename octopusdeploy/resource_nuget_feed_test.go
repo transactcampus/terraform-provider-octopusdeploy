@@ -2,6 +2,7 @@ package octopusdeploy
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
@@ -9,56 +10,68 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccOctopusDeployNugetFeedBasic(t *testing.T) {
+func TestAccOctopusDeployNuGetFeedBasic(t *testing.T) {
 	const feedPrefix = "octopusdeploy_nuget_feed.foo"
 	const feedName = "Testing Nuget one two three"
 	const feedURI = "http://test.com"
-	const enhancedMode = constTrue
-	const feedUsername = constUsername
-	const feedPassword = constPassword
+	const enhancedMode = true
+	const feedUsername = "username"
+	const feedPassword = "password"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testOctopusDeployNugetFeedDestroy,
+		CheckDestroy: testOctopusDeployNuGetFeedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testNugetFeedBasic(feedName, feedURI, feedUsername, feedPassword, enhancedMode),
+				Config: testNuGetFeedBasic(feedName, feedURI, feedUsername, feedPassword, enhancedMode),
 				Check: resource.ComposeTestCheckFunc(
-					testOctopusDeployNugetFeedExists(feedPrefix),
+					testOctopusDeployNuGetFeedExists(feedPrefix),
 					resource.TestCheckResourceAttr(feedPrefix, "name", feedName),
-					resource.TestCheckResourceAttr(feedPrefix, constFeedURI, feedURI),
-					resource.TestCheckResourceAttr(feedPrefix, constUsername, feedUsername),
-					resource.TestCheckResourceAttr(feedPrefix, constPassword, feedPassword),
-					resource.TestCheckResourceAttr(feedPrefix, constEnhancedMode, enhancedMode),
+					resource.TestCheckResourceAttr(feedPrefix, "feed_uri", feedURI),
+					resource.TestCheckResourceAttr(feedPrefix, "username", feedUsername),
+					resource.TestCheckResourceAttr(feedPrefix, "password", feedPassword),
+					resource.TestCheckResourceAttr(feedPrefix, "is_enhanced_mode", strconv.FormatBool(enhancedMode)),
 				),
 			},
 		},
 	})
 }
 
-func testNugetFeedBasic(name, feedURI string, feedUsername string, feedPassword string, enhancedMode string) string {
-	return fmt.Sprintf(`
-		resource "octopusdeploy_nuget_feed" "foo" {
-			name          = "%s"
-			feed_uri      = "%s"
-			username = "%s"
-			password = "%s"
-			enhanced_mode = "%s"
-		}
-		`,
-		name, feedURI, feedUsername, feedPassword, enhancedMode,
-	)
+func testNuGetFeedBasic(name, feedURI string, username string, password string, isEnhancedMode bool) string {
+	return fmt.Sprintf(`resource "octopusdeploy_nuget_feed" "foo" {
+		feed_uri = "%s"
+		is_enhanced_mode = %v
+		name = "%s"
+		password = "%s"
+		username = "%s"
+	}`, feedURI, isEnhancedMode, name, password, username)
 }
 
-func testOctopusDeployNugetFeedExists(n string) resource.TestCheckFunc {
+func testOctopusDeployNuGetFeedExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*octopusdeploy.Client)
-		return feedExistsHelper(s, client)
+		feedID := s.RootModule().Resources[n].Primary.ID
+		if _, err := client.Feeds.GetByID(feedID); err != nil {
+			return err
+		}
+
+		return nil
 	}
 }
 
-func testOctopusDeployNugetFeedDestroy(s *terraform.State) error {
+func testOctopusDeployNuGetFeedDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*octopusdeploy.Client)
-	return destroyFeedHelper(s, client)
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "octopusdeploy_nuget_feed" {
+			continue
+		}
+
+		_, err := client.Feeds.GetByID(rs.Primary.ID)
+		if err == nil {
+			return fmt.Errorf("feed (%s) still exists", rs.Primary.ID)
+		}
+	}
+
+	return nil
 }

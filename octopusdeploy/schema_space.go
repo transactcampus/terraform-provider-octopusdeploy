@@ -2,10 +2,10 @@ package octopusdeploy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/transactcampus/go-octopusdeploy/octopusdeploy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func expandSpace(d *schema.ResourceData) *octopusdeploy.Space {
@@ -30,128 +30,97 @@ func expandSpace(d *schema.ResourceData) *octopusdeploy.Space {
 		space.SpaceManagersTeams = getSliceFromTerraformTypeList(v)
 	}
 
-	if v, ok := d.GetOk("task_queue_stopped"); ok {
+	if v, ok := d.GetOk("is_task_queue_stopped"); ok {
 		space.TaskQueueStopped = v.(bool)
 	}
 
 	return space
 }
 
-func flattenSpace(ctx context.Context, d *schema.ResourceData, space *octopusdeploy.Space) {
-	d.Set("description", space.Description)
-	d.Set("is_default", space.IsDefault)
-	d.Set("name", space.Name)
-	d.Set("space_managers_team_members", space.SpaceManagersTeamMembers)
-	d.Set("space_managers_teams", space.SpaceManagersTeams)
-	d.Set("task_queue_stopped", space.TaskQueueStopped)
+func flattenSpace(space *octopusdeploy.Space) map[string]interface{} {
+	if space == nil {
+		return nil
+	}
 
-	d.SetId(space.GetID())
+	return map[string]interface{}{
+		"description":                 space.Description,
+		"id":                          space.GetID(),
+		"is_default":                  space.IsDefault,
+		"is_task_queue_stopped":       space.TaskQueueStopped,
+		"name":                        space.Name,
+		"space_managers_team_members": space.SpaceManagersTeamMembers,
+		"space_managers_teams":        space.SpaceManagersTeams,
+	}
 }
 
 func getSpaceDataSchema() map[string]*schema.Schema {
+	dataSchema := getSpaceSchema()
+	setDataSchema(&dataSchema)
+
 	return map[string]*schema.Schema{
-		"ids": {
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
-			Optional: true,
-			Type:     schema.TypeList,
-		},
-		"name": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"partial_name": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"skip": {
-			Default:  0,
-			Type:     schema.TypeInt,
-			Optional: true,
-		},
-		"take": {
-			Default:  1,
-			Type:     schema.TypeInt,
-			Optional: true,
-		},
+		"id":           getDataSchemaID(),
+		"ids":          getQueryIDs(),
+		"name":         getQueryName(),
+		"partial_name": getQueryPartialName(),
+		"skip":         getQuerySkip(),
 		"spaces": {
-			Computed: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"description": {
-						Optional: true,
-						Type:     schema.TypeString,
-					},
-					"is_default": {
-						Optional: true,
-						Type:     schema.TypeBool,
-					},
-					"id": {
-						Optional: true,
-						Type:     schema.TypeString,
-					},
-					"name": {
-						Optional: true,
-						Type:     schema.TypeString,
-					},
-					"space_managers_team_members": {
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
-						},
-						Optional: true,
-						Type:     schema.TypeList,
-					},
-					"space_managers_teams": {
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
-						},
-						Optional: true,
-						Type:     schema.TypeList,
-					},
-					"task_queue_stopped": {
-						Optional: true,
-						Type:     schema.TypeBool,
-					},
-				},
-			},
-			Type: schema.TypeList,
+			Computed:    true,
+			Description: "A list of spaces that match the filter(s).",
+			Elem:        &schema.Resource{Schema: dataSchema},
+			Optional:    true,
+			Type:        schema.TypeList,
 		},
+		"take": getQueryTake(),
 	}
 }
 
 func getSpaceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"description": {
-			Optional: true,
-			Type:     schema.TypeString,
-		},
+		"description": getDescriptionSchema(),
+		"id":          getIDSchema(),
 		"is_default": {
-			Optional: true,
-			Type:     schema.TypeBool,
+			Description: "Specifies if this space is the default space in Octopus.",
+			Optional:    true,
+			Type:        schema.TypeBool,
 		},
-		"name": &schema.Schema{
-			Required:     true,
-			Type:         schema.TypeString,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
+		"name": getNameSchema(true),
 		"space_managers_team_members": {
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
-			Optional: true,
-			Type:     schema.TypeList,
+			Computed:    true,
+			Description: "A list of user IDs designated to be managers of this space.",
+			Elem:        &schema.Schema{Type: schema.TypeString},
+			Optional:    true,
+			Type:        schema.TypeList,
 		},
 		"space_managers_teams": {
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
-			Optional: true,
-			Type:     schema.TypeList,
+			Computed:    true,
+			Description: "A list of team IDs designated to be managers of this space.",
+			Elem:        &schema.Schema{Type: schema.TypeString},
+			Optional:    true,
+			Type:        schema.TypeList,
 		},
-		"task_queue_stopped": {
-			Optional: true,
-			Type:     schema.TypeBool,
+		"is_task_queue_stopped": {
+			Description: "Specifies the status of the task queue for this space.",
+			Optional:    true,
+			Type:        schema.TypeBool,
 		},
 	}
+}
+
+func setSpace(ctx context.Context, d *schema.ResourceData, space *octopusdeploy.Space) error {
+	d.Set("description", space.Description)
+	d.Set("id", space.GetID())
+	d.Set("is_default", space.IsDefault)
+	d.Set("name", space.Name)
+
+	if err := d.Set("space_managers_team_members", space.SpaceManagersTeamMembers); err != nil {
+		return fmt.Errorf("error setting space_managers_team_members: %s", err)
+	}
+
+	if err := d.Set("space_managers_teams", space.SpaceManagersTeams); err != nil {
+		return fmt.Errorf("error setting space_managers_teams: %s", err)
+	}
+
+	d.Set("is_task_queue_stopped", space.TaskQueueStopped)
+
+	return nil
 }

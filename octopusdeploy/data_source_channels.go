@@ -11,6 +11,7 @@ import (
 
 func dataSourceChannels() *schema.Resource {
 	return &schema.Resource{
+		Description: "Provides information about existing channels.",
 		ReadContext: dataSourceChannelsRead,
 		Schema:      getChannelDataSchema(),
 	}

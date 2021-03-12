@@ -10,6 +10,7 @@ import (
 
 func dataSourceLibraryVariableSet() *schema.Resource {
 	return &schema.Resource{
+		Description: "Provides information about existing library variable sets.",
 		ReadContext: dataSourceLibraryVariableSetReadByName,
 		Schema:      getLibraryVariableSetDataSchema(),
 	}
@@ -32,7 +33,7 @@ func dataSourceLibraryVariableSetReadByName(ctx context.Context, d *schema.Resou
 
 	for _, libraryVariableSet := range libraryVariableSets {
 		if libraryVariableSet.Name == name {
-			flattenLibraryVariableSet(ctx, d, libraryVariableSet)
+			setLibraryVariableSet(ctx, d, libraryVariableSet)
 			return nil
 		}
 	}

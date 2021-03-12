@@ -11,6 +11,7 @@ import (
 
 func dataSourceProjectGroups() *schema.Resource {
 	return &schema.Resource{
+		Description: "Provides information about existing project groups.",
 		ReadContext: dataSourceProjectGroupsRead,
 		Schema:      getProjectGroupDataSchema(),
 	}
@@ -32,14 +33,7 @@ func dataSourceProjectGroupsRead(ctx context.Context, d *schema.ResourceData, m 
 
 	flattenedProjectGroups := []interface{}{}
 	for _, projectGroup := range projectGroups.Items {
-		flattenedProjectGroup := map[string]interface{}{
-			"description":         projectGroup.Description,
-			"environments":        projectGroup.EnvironmentIDs,
-			"id":                  projectGroup.GetID(),
-			"name":                projectGroup.Name,
-			"retention_policy_id": projectGroup.RetentionPolicyID,
-		}
-		flattenedProjectGroups = append(flattenedProjectGroups, flattenedProjectGroup)
+		flattenedProjectGroups = append(flattenedProjectGroups, flattenProjectGroup(projectGroup))
 	}
 
 	d.Set("project_groups", flattenedProjectGroups)
